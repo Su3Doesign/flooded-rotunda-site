@@ -108,10 +108,10 @@
    3.0
   ]
  ],
- "statue_top": 4.760413646697998,
+ "statue_top": 4.7551960945129395,
  "statue_head": [
   0.0,
-  4.510413646697998,
+  4.5051960945129395,
   -0.0
  ],
  "pedestal_top": 1.9699999999999998,
@@ -651,7 +651,7 @@
  },
  "files": {
   "library.glb": 206268,
-  "statue.glb": 2363980,
+  "statue.glb": 2860516,
   "world.glb": 8950272,
   "inst/ivyground3d_2.bin": 49500,
   "inst/pebble3d_9.bin": 8536,
