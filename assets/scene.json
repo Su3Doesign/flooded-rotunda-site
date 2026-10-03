@@ -1,0 +1,731 @@
+{
+ "sun_dir": [
+  -0.3822074221015613,
+  0.9135454576426009,
+  -0.13911212496058661
+ ],
+ "holes": [
+  [
+   -6.340214262847603,
+   19.314589276179852,
+   -2.3076492705465608,
+   1.9
+  ],
+  [
+   -8.40066988759579,
+   17.299665600936066,
+   0.5606106394368279,
+   1.3
+  ],
+  [
+   -2.8718900217335754,
+   20.3312594801693,
+   -4.8944006516575,
+   1.4211706116781246
+  ],
+  [
+   1.9087224642805134,
+   18.55053756571148,
+   7.185494580442055,
+   1.524770047256329
+  ],
+  [
+   5.720890651523567,
+   17.444411667187097,
+   6.030721862414827,
+   1.648617374861018
+  ],
+  [
+   2.924932823644355,
+   18.568239175398613,
+   -6.8187588959055825,
+   1.0534602741402705
+  ],
+  [
+   7.472169057980278,
+   18.294968733371046,
+   -1.631931216161036,
+   1.4300777711551107
+  ],
+  [
+   -3.215316225374811,
+   21.05375692324444,
+   3.472400922201487,
+   1.3580726909663574
+  ],
+  [
+   5.994411601030183,
+   17.49840455201638,
+   -5.700643144406009,
+   1.821859597351753
+  ],
+  [
+   4.500730995860576,
+   21.1893005027391,
+   0.5053628673034061,
+   1.8213698238023948
+  ],
+  [
+   -1.9301658679422575,
+   17.792243356912852,
+   7.813982706597576,
+   1.0416186838058596
+  ],
+  [
+   7.757149462929488,
+   16.961952138101797,
+   -3.8555247636374244,
+   1.5949814710073282
+  ],
+  [
+   3.3545144812732364,
+   18.32069534207164,
+   6.8498340081528335,
+   1.5383929436241586
+  ],
+  [
+   8.027154689880057,
+   17.779467681450562,
+   -0.7124707846833183,
+   1.1053545082656882
+  ],
+  [
+   8.111237436958762,
+   16.799433502317008,
+   -3.352093237492441,
+   1.0948571007090437
+  ],
+  [
+   3.8342264028902915,
+   17.60433796330624,
+   7.239938426618214,
+   0.871750612339538
+  ],
+  [
+   0.0,
+   22.25,
+   -0.0,
+   3.0
+  ]
+ ],
+ "statue_top": 4.760413646697998,
+ "statue_head": [
+  0.0,
+  4.510413646697998,
+  -0.0
+ ],
+ "pedestal_top": 1.9699999999999998,
+ "water_y": 0.0,
+ "floor_y": -1.1,
+ "ring_radius": 9.6,
+ "outer_radius": 13.0,
+ "instances": [
+  {
+   "set": "ivy3d",
+   "mesh": "leaf_00",
+   "file": "inst/ivy3d_0.bin",
+   "count": 10059
+  },
+  {
+   "set": "ivy3d",
+   "mesh": "leaf_01",
+   "file": "inst/ivy3d_1.bin",
+   "count": 10151
+  },
+  {
+   "set": "ivy3d",
+   "mesh": "leaf_02",
+   "file": "inst/ivy3d_2.bin",
+   "count": 9989
+  },
+  {
+   "set": "ivy3d",
+   "mesh": "leaf_03",
+   "file": "inst/ivy3d_3.bin",
+   "count": 9988
+  },
+  {
+   "set": "ivy3d",
+   "mesh": "leaf_04",
+   "file": "inst/ivy3d_4.bin",
+   "count": 10100
+  },
+  {
+   "set": "ivy3d",
+   "mesh": "leaf_05",
+   "file": "inst/ivy3d_5.bin",
+   "count": 10031
+  },
+  {
+   "set": "ivy3d",
+   "mesh": "leaf_06",
+   "file": "inst/ivy3d_6.bin",
+   "count": 9849
+  },
+  {
+   "set": "ivy3d",
+   "mesh": "leaf_07",
+   "file": "inst/ivy3d_7.bin",
+   "count": 9833
+  },
+  {
+   "set": "ivyground3d",
+   "mesh": "leaf_00",
+   "file": "inst/ivyground3d_0.bin",
+   "count": 1167
+  },
+  {
+   "set": "ivyground3d",
+   "mesh": "leaf_01",
+   "file": "inst/ivyground3d_1.bin",
+   "count": 1166
+  },
+  {
+   "set": "ivyground3d",
+   "mesh": "leaf_02",
+   "file": "inst/ivyground3d_2.bin",
+   "count": 1125
+  },
+  {
+   "set": "ivyground3d",
+   "mesh": "leaf_03",
+   "file": "inst/ivyground3d_3.bin",
+   "count": 1121
+  },
+  {
+   "set": "ivyground3d",
+   "mesh": "leaf_04",
+   "file": "inst/ivyground3d_4.bin",
+   "count": 1033
+  },
+  {
+   "set": "ivyground3d",
+   "mesh": "leaf_05",
+   "file": "inst/ivyground3d_5.bin",
+   "count": 1145
+  },
+  {
+   "set": "ivyground3d",
+   "mesh": "leaf_06",
+   "file": "inst/ivyground3d_6.bin",
+   "count": 1104
+  },
+  {
+   "set": "ivyground3d",
+   "mesh": "leaf_07",
+   "file": "inst/ivyground3d_7.bin",
+   "count": 1139
+  },
+  {
+   "set": "litter3d",
+   "mesh": "litter_00",
+   "file": "inst/litter3d_0.bin",
+   "count": 697
+  },
+  {
+   "set": "litter3d",
+   "mesh": "litter_01",
+   "file": "inst/litter3d_1.bin",
+   "count": 661
+  },
+  {
+   "set": "litter3d",
+   "mesh": "litter_02",
+   "file": "inst/litter3d_2.bin",
+   "count": 592
+  },
+  {
+   "set": "litter3d",
+   "mesh": "litter_03",
+   "file": "inst/litter3d_3.bin",
+   "count": 632
+  },
+  {
+   "set": "litter3d",
+   "mesh": "litter_04",
+   "file": "inst/litter3d_4.bin",
+   "count": 629
+  },
+  {
+   "set": "litter3d",
+   "mesh": "litter_05",
+   "file": "inst/litter3d_5.bin",
+   "count": 629
+  },
+  {
+   "set": "fern3d",
+   "mesh": "fern_00",
+   "file": "inst/fern3d_0.bin",
+   "count": 97
+  },
+  {
+   "set": "fern3d",
+   "mesh": "fern_01",
+   "file": "inst/fern3d_1.bin",
+   "count": 101
+  },
+  {
+   "set": "fern3d",
+   "mesh": "fern_02",
+   "file": "inst/fern3d_2.bin",
+   "count": 88
+  },
+  {
+   "set": "fern3d",
+   "mesh": "fern_03",
+   "file": "inst/fern3d_3.bin",
+   "count": 105
+  },
+  {
+   "set": "wallfern3d",
+   "mesh": "fern_00",
+   "file": "inst/wallfern3d_0.bin",
+   "count": 61
+  },
+  {
+   "set": "wallfern3d",
+   "mesh": "fern_01",
+   "file": "inst/wallfern3d_1.bin",
+   "count": 49
+  },
+  {
+   "set": "wallfern3d",
+   "mesh": "fern_02",
+   "file": "inst/wallfern3d_2.bin",
+   "count": 82
+  },
+  {
+   "set": "wallfern3d",
+   "mesh": "fern_03",
+   "file": "inst/wallfern3d_3.bin",
+   "count": 68
+  },
+  {
+   "set": "grass3d",
+   "mesh": "grass_00",
+   "file": "inst/grass3d_0.bin",
+   "count": 616
+  },
+  {
+   "set": "grass3d",
+   "mesh": "grass_01",
+   "file": "inst/grass3d_1.bin",
+   "count": 589
+  },
+  {
+   "set": "grass3d",
+   "mesh": "grass_02",
+   "file": "inst/grass3d_2.bin",
+   "count": 585
+  },
+  {
+   "set": "grass3d",
+   "mesh": "grass_03",
+   "file": "inst/grass3d_3.bin",
+   "count": 610
+  },
+  {
+   "set": "moss3d",
+   "mesh": "moss_00",
+   "file": "inst/moss3d_0.bin",
+   "count": 1628
+  },
+  {
+   "set": "moss3d",
+   "mesh": "moss_01",
+   "file": "inst/moss3d_1.bin",
+   "count": 1644
+  },
+  {
+   "set": "moss3d",
+   "mesh": "moss_02",
+   "file": "inst/moss3d_2.bin",
+   "count": 2861
+  },
+  {
+   "set": "moss3d",
+   "mesh": "moss_03",
+   "file": "inst/moss3d_3.bin",
+   "count": 2867
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_00",
+   "file": "inst/pebble3d_0.bin",
+   "count": 774
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_01",
+   "file": "inst/pebble3d_1.bin",
+   "count": 857
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_02",
+   "file": "inst/pebble3d_2.bin",
+   "count": 824
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_03",
+   "file": "inst/pebble3d_3.bin",
+   "count": 816
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_04",
+   "file": "inst/pebble3d_4.bin",
+   "count": 799
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_05",
+   "file": "inst/pebble3d_5.bin",
+   "count": 786
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_06",
+   "file": "inst/pebble3d_6.bin",
+   "count": 181
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_07",
+   "file": "inst/pebble3d_7.bin",
+   "count": 189
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_08",
+   "file": "inst/pebble3d_8.bin",
+   "count": 198
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_09",
+   "file": "inst/pebble3d_9.bin",
+   "count": 194
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_10",
+   "file": "inst/pebble3d_10.bin",
+   "count": 190
+  },
+  {
+   "set": "pebble3d",
+   "mesh": "pebble_11",
+   "file": "inst/pebble3d_11.bin",
+   "count": 192
+  }
+ ],
+ "library": {
+  "leaf_00": 48,
+  "leaf_01": 47,
+  "leaf_02": 47,
+  "leaf_03": 48,
+  "leaf_04": 48,
+  "leaf_05": 47,
+  "leaf_06": 46,
+  "leaf_07": 47,
+  "litter_00": 48,
+  "litter_01": 48,
+  "litter_02": 48,
+  "litter_03": 48,
+  "litter_04": 48,
+  "litter_05": 48,
+  "fern_00": 1600,
+  "fern_01": 1600,
+  "fern_02": 1599,
+  "fern_03": 1600,
+  "grass_00": 520,
+  "grass_01": 520,
+  "grass_02": 520,
+  "grass_03": 520,
+  "moss_00": 119,
+  "moss_01": 119,
+  "moss_02": 119,
+  "moss_03": 120,
+  "pebble_00": 96,
+  "pebble_01": 96,
+  "pebble_02": 96,
+  "pebble_03": 96,
+  "pebble_04": 96,
+  "pebble_05": 96,
+  "pebble_06": 96,
+  "pebble_07": 96,
+  "pebble_08": 96,
+  "pebble_09": 96,
+  "pebble_10": 96,
+  "pebble_11": 96
+ },
+ "cameras": {
+  "Cam_Reel": {
+   "lens": 30.0,
+   "keys": [
+    {
+     "loc": [
+      4.646,
+      11.2,
+      6.635
+     ],
+     "look": [
+      0.0,
+      3.4,
+      -0.0
+     ]
+    },
+    {
+     "loc": [
+      3.6,
+      7.4,
+      6.235
+     ],
+     "look": [
+      0.0,
+      3.7,
+      -0.0
+     ]
+    },
+    {
+     "loc": [
+      2.173,
+      4.6,
+      5.378
+     ],
+     "look": [
+      0.0,
+      3.9,
+      -0.0
+     ]
+    }
+   ]
+  },
+  "Cam_Hero": {
+   "lens": 28.0,
+   "keys": [
+    {
+     "loc": [
+      4.248,
+      9.0,
+      6.542
+     ],
+     "look": [
+      0.0,
+      3.3,
+      -0.0
+     ]
+    },
+    {
+     "loc": [
+      4.248,
+      9.0,
+      6.542
+     ],
+     "look": [
+      0.0,
+      3.3,
+      -0.0
+     ]
+    }
+   ]
+  },
+  "Cam_Wide": {
+   "lens": 18.0,
+   "keys": [
+    {
+     "loc": [
+      4.178,
+      1.6,
+      4.979
+     ],
+     "look": [
+      -5.785,
+      6.0,
+      -6.894
+     ]
+    },
+    {
+     "loc": [
+      4.178,
+      1.6,
+      4.979
+     ],
+     "look": [
+      -5.785,
+      6.0,
+      -6.894
+     ]
+    }
+   ]
+  },
+  "Cam_Above": {
+   "lens": 24.0,
+   "keys": [
+    {
+     "loc": [
+      6.928,
+      9.5,
+      4.0
+     ],
+     "look": [
+      -1.732,
+      3.5,
+      -1.0
+     ]
+    },
+    {
+     "loc": [
+      6.928,
+      9.5,
+      4.0
+     ],
+     "look": [
+      -1.732,
+      3.5,
+      -1.0
+     ]
+    }
+   ]
+  },
+  "Cam_Dome": {
+   "lens": 20.0,
+   "keys": [
+    {
+     "loc": [
+      3.83,
+      0.9,
+      3.214
+     ],
+     "look": [
+      -1.732,
+      17.0,
+      -1.0
+     ]
+    },
+    {
+     "loc": [
+      3.83,
+      0.9,
+      3.214
+     ],
+     "look": [
+      -1.732,
+      17.0,
+      -1.0
+     ]
+    }
+   ]
+  },
+  "Cam_Statue": {
+   "lens": 50.0,
+   "keys": [
+    {
+     "loc": [
+      -0.764,
+      4.4,
+      4.333
+     ],
+     "look": [
+      0.0,
+      3.7,
+      -0.0
+     ]
+    },
+    {
+     "loc": [
+      -0.764,
+      4.4,
+      4.333
+     ],
+     "look": [
+      0.0,
+      3.7,
+      -0.0
+     ]
+    }
+   ]
+  }
+ },
+ "files": {
+  "library.glb": 206268,
+  "statue.glb": 2363980,
+  "world.glb": 8950272,
+  "inst/ivyground3d_2.bin": 49500,
+  "inst/pebble3d_9.bin": 8536,
+  "inst/litter3d_1.bin": 29084,
+  "inst/moss3d_2.bin": 125884,
+  "inst/pebble3d_2.bin": 36256,
+  "inst/pebble3d_1.bin": 37708,
+  "inst/litter3d_3.bin": 27808,
+  "inst/ivy3d_1.bin": 446644,
+  "inst/ivyground3d_5.bin": 50380,
+  "inst/wallfern3d_0.bin": 2684,
+  "inst/wallfern3d_3.bin": 2992,
+  "inst/pebble3d_0.bin": 34056,
+  "inst/litter3d_4.bin": 27676,
+  "inst/ivyground3d_7.bin": 50116,
+  "inst/pebble3d_4.bin": 35156,
+  "inst/grass3d_1.bin": 25916,
+  "inst/ivy3d_2.bin": 439516,
+  "inst/ivyground3d_0.bin": 51348,
+  "inst/ivyground3d_3.bin": 49324,
+  "inst/pebble3d_6.bin": 7964,
+  "inst/ivyground3d_4.bin": 45452,
+  "inst/ivy3d_0.bin": 442596,
+  "inst/grass3d_0.bin": 27104,
+  "inst/fern3d_2.bin": 3872,
+  "inst/pebble3d_10.bin": 8360,
+  "inst/moss3d_1.bin": 72336,
+  "inst/fern3d_1.bin": 4444,
+  "inst/fern3d_3.bin": 4620,
+  "inst/ivy3d_6.bin": 433356,
+  "inst/wallfern3d_2.bin": 3608,
+  "inst/ivyground3d_6.bin": 48576,
+  "inst/moss3d_3.bin": 126148,
+  "inst/pebble3d_3.bin": 35904,
+  "inst/ivy3d_4.bin": 444400,
+  "inst/pebble3d_5.bin": 34584,
+  "inst/grass3d_2.bin": 25740,
+  "inst/pebble3d_8.bin": 8712,
+  "inst/ivy3d_3.bin": 439472,
+  "inst/litter3d_5.bin": 27676,
+  "inst/moss3d_0.bin": 71632,
+  "inst/grass3d_3.bin": 26840,
+  "inst/pebble3d_7.bin": 8316,
+  "inst/wallfern3d_1.bin": 2156,
+  "inst/litter3d_0.bin": 30668,
+  "inst/ivyground3d_1.bin": 51304,
+  "inst/ivy3d_7.bin": 432652,
+  "inst/litter3d_2.bin": 26048,
+  "inst/ivy3d_5.bin": 441364,
+  "inst/pebble3d_11.bin": 8448,
+  "inst/fern3d_0.bin": 4268,
+  "tex/Marble_N.jpg": 276384,
+  "tex/Litter_BC.jpg": 151465,
+  "tex/Moss_N.jpg": 899110,
+  "tex/StoneCarved_BC.jpg": 150859,
+  "tex/Marble_ORH.jpg": 219095,
+  "tex/Water_N.jpg": 430133,
+  "tex/Paving_BC.jpg": 164608,
+  "tex/StoneCarved_ORH.jpg": 354472,
+  "tex/StoneCarved_N.jpg": 809595,
+  "tex/Moss_BC.jpg": 278721,
+  "tex/Detail_N.jpg": 199549,
+  "tex/Bark_BC.jpg": 49198,
+  "tex/Leaf_N.jpg": 183589,
+  "tex/Moss_ORH.jpg": 666014,
+  "tex/StoneAshlar_ORH.jpg": 422017,
+  "tex/Paving_ORH.jpg": 405207,
+  "tex/Foam.jpg": 134889,
+  "tex/Paving_N.jpg": 862258,
+  "tex/Leaf_BC.jpg": 159112,
+  "tex/Marble_BC.jpg": 174794,
+  "tex/StoneAshlar_BC.jpg": 174103,
+  "tex/Caustics.jpg": 96775,
+  "tex/StoneAshlar_N.jpg": 889191,
+  "tex/Macro.jpg": 41223
+ }
+}
