@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Flooded Rotunda — a sketchbook by Sumanth</title>
+<meta name="description" content="A world-building sketchbook: the myth, the rule and the making of a drowned Romanesque rotunda, told inside the live 3D world it was built as.">
+<meta name="theme-color" content="#0b0f0c">
+<meta property="og:title" content="The Flooded Rotunda — a sketchbook by Sumanth">
+<meta property="og:description" content="She turns to face whoever comes in. A world-building sketchbook in a live 3D world.">
+<meta property="og:image" content="img/render/wide.jpg">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/statue.glb" as="fetch" crossorigin>
+<link rel="preload" href="fonts/Cinzel-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Caveat-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="vendor/lenis/lenis.css">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
+</head>
+<body class="is-loading">
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- the loading screen is her: she turns until she has seen who came in -->
+<div id="loader" aria-live="polite">
+  <div class="ld-top">Sumanth &middot; sketchbook n&ordm; 1</div>
+  <div class="ld-note"><svg class="mk-inline" viewBox="0 0 92 60" aria-hidden="true"><path class="draw" d="M88 6 C 60 4, 30 14, 10 46 M10 46 L 9 30 M10 46 L 26 42" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    <span class="ld-note-text">shh &mdash; she&rsquo;s turning to see who came in.</span>
+    <small>(she always does)</small></div>
+  <div class="ld-bottom">
+    <svg class="ld-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="36"/><circle class="arc" cx="50" cy="50" r="36" pathLength="1"/><line class="tk" x1="50.0" y1="7.0" x2="50.0" y2="1.0"/><line class="tk" x1="71.5" y1="12.8" x2="74.5" y2="7.6"/><line class="tk" x1="87.2" y1="28.5" x2="92.4" y2="25.5"/><line class="tk" x1="93.0" y1="50.0" x2="99.0" y2="50.0"/><line class="tk" x1="87.2" y1="71.5" x2="92.4" y2="74.5"/><line class="tk" x1="71.5" y1="87.2" x2="74.5" y2="92.4"/><line class="tk" x1="50.0" y1="93.0" x2="50.0" y2="99.0"/><line class="tk" x1="28.5" y1="87.2" x2="25.5" y2="92.4"/><line class="tk" x1="12.8" y1="71.5" x2="7.6" y2="74.5"/><line class="tk" x1="7.0" y1="50.0" x2="1.0" y2="50.0"/><line class="tk" x1="12.8" y1="28.5" x2="7.6" y2="25.5"/><line class="tk" x1="28.5" y1="12.8" x2="25.5" y2="7.6"/><circle class="eye" cx="50" cy="50" r="5"/></svg>
+    <div class="ld-label"><span class="ld-what">drawing the rotunda</span> &middot; <span class="ld-pct">0</span>%</div>
+  </div>
+</div>
+
+<header id="hud">
+  <a class="brand" href="#top" aria-label="The Flooded Rotunda — back to the top">
+    <svg viewBox="0 0 100 100" aria-hidden="true"><use href="#emblem"/></svg>
+    <span><b>THE FLOODED ROTUNDA</b><small>a sketchbook by Sumanth</small></span>
+  </a>
+  <div class="right">
+    <div class="chapter" aria-live="polite"><b class="chapter-n">&nbsp;</b> <span class="chapter-t"></span></div>
+    <button class="btn-sketch btn-sound" type="button" aria-pressed="false" title="Room sound: drips, bells, the water">&#9834; sound</button>
+    <button class="btn-sketch" type="button" aria-pressed="false" title="See the world as a pencil sketch">&#9998; sketch</button>
+  </div>
+</header>
+
+<nav class="gauge" aria-label="Chapters">
+  <div class="staff"></div><div class="fill"></div>
+  <div class="fingers" aria-live="polite"></div>
+</nav>
+
+<main id="top">
+
+<!-- ============================================================== INTRO -->
+<section class="ch intro" id="s-intro" data-station="reveal" data-chapter="&nbsp;|The Flooded Rotunda" style="--h:100vh" data-fb="img/render/statue.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__text">
+      <svg class="emblem" viewBox="0 0 100 100" aria-hidden="true"><use href="#emblem"/></svg>
+      <h1 class="title" aria-label="The Flooded Rotunda"><span class="ln">THE FLOODED</span><span class="ln">ROTUNDA</span></h1>
+      <p class="byline">a world-building sketchbook &middot; Sumanth</p>
+      <p class="inscr">AQVAM &bull; TENEO &bull; DONEC &bull; REDEAS</p>
+      <p class="inscr-tr">&ldquo;I hold the water until you return.&rdquo;</p>
+    </div>
+    <div class="note note--why" style="--r:-4deg"><p class="hand">She turns to face whoever comes in.<br>That&rsquo;s why she moved when you arrived.</p><p class="hand hand--red" style="margin-top:.5em">&mdash; chapter VII explains the rest</p></div>
+    <div class="scroll-hint">scroll &mdash; slowly, she&rsquo;s listening<i></i></div>
+  </div>
+</section>
+
+<!-- ============================================================== THE RING -->
+<section class="ch" id="s-ring" data-station="hero" data-chapter="&nbsp;|The Ring" style="--h:240vh" data-fb="img/render/above.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__text ch__text--top" data-step>
+      <p class="kicker">The model, roof lifted</p>
+      <h2>A ring with no corners</h2>
+      <p class="lore">This is the whole place with its dome lifted off like a lid: twelve bays around a drowned floor, a statue in the middle, and one door. The roof is still there for the light &mdash; you&rsquo;re looking at the shadow of it.</p>
+      <p class="lore">Everything here is the real scene from my Blender and Unreal builds, streamed into your browser: about 0.7&nbsp;million triangles of stone and 111&nbsp;thousand pieces of ivy, moss, fern and pebble.</p>
+    </div>
+    <div class="annos">
+      <div class="anno" data-at="0,2.2,0" data-dx="60" data-dy="-90"><i class="dot"></i><i class="lead"></i><span class="lbl">La Custode<small>the keeper</small></span></div>
+      <div class="anno" data-at="-2.09,1.2,9.06" data-dx="-150" data-dy="50"><i class="dot"></i><i class="lead"></i><span class="lbl">the only door<small>bay IX &middot; no entry</small></span></div>
+      <div class="anno" data-at="10.6,16.0,-5.2" data-dx="80" data-dy="-60"><i class="dot"></i><i class="lead"></i><span class="lbl">where the dome sat<small>+15.7 m &middot; sixteen eyes</small></span></div>
+      <div class="anno" data-at="-6.8,0.1,-6.9" data-dx="-120" data-dy="-80"><i class="dot"></i><i class="lead"></i><span class="lbl">green water<small>1.1 m deep</small></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== PROLOGUE (book) -->
+<article class="page" id="p-prologue" data-chapter="&nbsp;|Prologue">
+  <div class="page__in">
+    <div class="stain" style="right:-60px; top:-40px; transform:rotate(30deg)"></div>
+    <p class="kicker" data-r>Prologue</p>
+    <h2 data-r>Before the water</h2>
+    <div class="grid">
+      <div class="span-5">
+        <figure class="plate plate--frame tape" style="--r:-1.6deg" data-r>
+          <img src="img/render/reel.jpg" alt="The reel shot rebuilt: the statue on her pedestal in the flooded rotunda, light falling through the dome" loading="lazy" width="900" height="1600">
+          <figcaption><b>Fig. 1</b>the reel shot, rebuilt from scratch &mdash; Cycles, 1080&times;1920</figcaption>
+        </figure>
+      </div>
+      <div class="c7-6">
+        <p class="lead drop" data-r>It started with twelve seconds of someone else&rsquo;s reel &mdash; a drowned rotunda by <em>simonzhang.art</em>: ivy, green water, a woman in marble standing very still in the middle of it all. I watched it more times than I&rsquo;d like to admit. Not for the light. For her.</p>
+        <p data-r>Who builds a round room, floods it, and leaves exactly one person inside?</p>
+        <p data-r>This sketchbook is my answer: a myth, a rule, a lot of stone and a few billion triangles&rsquo; worth of trying. Everything in it was built from nothing &mdash; the arches, the ivy, her face &mdash; with code first, then Blender, then Unreal, and now this page. Some of it took a day. Her face took five tries.</p>
+        <p class="mnote" style="--r:-3deg; margin:34px 0 0 10px" data-r>rule n&ordm;1 &mdash; the room has to be <u>round</u>.<br>no corners to hide in.</p>
+        <div style="margin-top:46px" data-r data-mk="arrow" data-mk-ink="graphite" data-mk-pts="-0.06,-0.14,0.34,0.27">
+          <svg class="drawing plan-drawing" viewBox="-17 -17 34 34" role="img" aria-label="Sketch plan of the rotunda: twelve bays around a central plinth, one door marked no entry"></svg>
+          <p class="mnote" style="--r:2deg; margin:-6px 0 0 30%">plan at +2.6 m &mdash; first sketch</p>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:80px" data-r>
+      <p class="mnote mnote--red" style="--r:-1.5deg; margin-bottom:16px">colour keys, frame by frame &mdash; green is the only loud thing in the room</p>
+      <div class="keys">
+        <figure><img src="img/sketch/key_hero.jpg" alt="Colour key of the hero frame" loading="lazy"><figcaption>hero</figcaption></figure>
+        <figure><img src="img/sketch/key_wide.jpg" alt="Colour key of the wide frame" loading="lazy"><figcaption>wide</figcaption></figure>
+        <figure><img src="img/sketch/key_dome.jpg" alt="Colour key of the dome frame" loading="lazy"><figcaption>dome</figcaption></figure>
+        <figure><img src="img/sketch/key_statue.jpg" alt="Colour key of the statue frame" loading="lazy"><figcaption>her</figcaption></figure>
+        <figure><img src="img/sketch/key_reel.jpg" alt="Colour key of the reel frame" loading="lazy"><figcaption>reel</figcaption></figure>
+        <figure><img src="img/sketch/key_ivyarch.jpg" alt="Colour key of the ivy arch frame" loading="lazy"><figcaption>ivy arch</figcaption></figure>
+      </div>
+    </div>
+    <span class="folio">&mdash; 1 &mdash;</span>
+  </div>
+</article>
+
+<!-- ============================================================== I. THE SPRING -->
+<section class="ch ch--paper" id="s-spring" data-station="plan" data-chapter="I|The Spring" style="--h:220vh" data-fb="img/sketch/pencil_above.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__num" aria-hidden="true">I</div>
+    <div class="ch__text">
+      <p class="kicker">Chapter I</p>
+      <h2>The Spring</h2>
+      <p class="lore">Before the walls there was a spring that never froze. The valley called it <em>the Eye</em>. They ringed it with twelve bays &mdash; one for every month the Eye had kept them alive &mdash; and roofed it with a dome pierced sixteen times, so the sun could find the water at any hour.</p>
+      <p class="lore lore--big">A ring has no corners to hide in. That was the point.</p>
+    </div>
+    <div class="annos">
+      <div class="anno" data-at="0,0.2,0" data-dx="90" data-dy="-110"><i class="dot"></i><i class="lead"></i><span class="lbl">the Eye<small>her plinth stands on it</small></span></div>
+      <div class="anno" data-at="5.0,1.0,-8.66" data-dx="90" data-dy="-40"><i class="dot"></i><i class="lead"></i><span class="lbl">12 piers, 30&deg; apart<small>r 9.6 m</small></span></div>
+      <div class="anno" data-at="-2.09,1.0,9.06" data-dx="-170" data-dy="40"><i class="dot"></i><i class="lead"></i><span class="lbl">the door<small>bay IX</small></span></div>
+      <div class="anno" data-at="-8.49,0.3,-8.49" data-dx="-120" data-dy="-60"><i class="dot"></i><i class="lead"></i><span class="lbl">ambulatory<small>flooded too</small></span></div>
+      <div class="anno" data-at="3.4,-0.6,3.6" data-dx="130" data-dy="70"><i class="dot"></i><i class="lead"></i><span class="lbl">platform, drowned<small>9.5 m square</small></span></div>
+    </div>
+    <div class="note" style="right:calc(var(--gutter) + 40px); top:15vh; --r:3deg"><p class="hand">plan cut at +2.6 m.<br>red = where the knife went through stone.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================== II. TWELVE BAYS -->
+<section class="ch" id="s-bays" data-station="bays" data-chapter="II|Twelve Bays" style="--h:240vh" data-fb="img/render/wide.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__num" aria-hidden="true">II</div>
+    <div class="ch__text">
+      <p class="kicker">Chapter II</p>
+      <h2>Twelve Bays</h2>
+      <p class="lore">Romanesque, but not pure. Twin columns with cushion capitals, arches stepping back in three orders like ripples, a gallery above, a cornice that drips. Every course of ashlar is actually cut &mdash; eight-millimetre joints in the geometry, not painted on &mdash; because stone that&rsquo;s laid catches the light differently from stone that&rsquo;s printed.</p>
+    </div>
+    <div class="annos">
+      <div class="anno" data-at="9.25,4.0,0.25" data-dx="70" data-dy="110"><i class="dot"></i><i class="lead"></i><span class="lbl">cushion capitals<small>twin columns</small></span></div>
+      <div class="anno" data-at="8.98,5.7,2.41" data-dx="-150" data-dy="-90"><i class="dot"></i><i class="lead"></i><span class="lbl">three orders of arch<small>like ripples</small></span></div>
+      <div class="anno" data-at="8.9,11.6,2.4" data-dx="90" data-dy="-40"><i class="dot"></i><i class="lead"></i><span class="lbl">gallery<small>two arches a bay</small></span></div>
+    </div>
+    <div class="note" style="right:calc(var(--gutter) + 40px); bottom:16vh; --r:-2deg"><p class="hand">joints: 2 mm floor, 7 mm lip, 8 mm deep &mdash;<br>cut where the texture&rsquo;s joints are.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================== MAKING: STONE (book) -->
+<article class="page" id="p-stones" data-chapter="II|Making the stones">
+  <div class="page__in">
+    <p class="kicker" data-r>The making of &middot; stone</p>
+    <h2 data-r>From a cube to a cloister</h2>
+    <div class="grid" style="margin-bottom:56px">
+      <div class="span-7">
+        <p class="lead" data-r>Every stone here is generated by code. A small Python mesh toolkit came first &mdash; it could make a cube and a column, nothing else. From there: a straight arcade, bent around the circle; the joints carved into it; then weathering, as masks for moss, grime and the waterline. The same masks drive Blender, Unreal and the live world on this page.</p>
+      </div>
+      <div class="c9-4">
+        <svg class="drawing elev-drawing" viewBox="0 0 220 260" role="img" aria-label="Sketch section through one bay: ground arcade, gallery, cornice and dome springing with heights"></svg>
+      </div>
+    </div>
+    <div class="grid">
+      <figure class="plate tape span-4" style="--r:-1deg" data-r><img src="img/process/toolkit.jpg" alt="First test render: a cube and a fluted column" loading="lazy"><figcaption><b>Day 1</b></figcaption><span class="hand">a cube and a column. the toolkit had to make everything else.</span></figure>
+      <figure class="plate tape span-4" style="--r:1.2deg; margin-top:40px" data-r><img src="img/process/bay_clay.jpg" alt="First arcade bay in clay: arches on twin columns" loading="lazy"><figcaption><b>Clay</b></figcaption><span class="hand">first bay. too clean &mdash; looks like a cake.</span></figure>
+      <figure class="plate tape span-4" style="--r:-.6deg" data-r><img src="img/process/bay_clay_wide.jpg" alt="Clay render of the full ring of arcades from inside" loading="lazy"><figcaption><b>Clay</b></figcaption><span class="hand">the ring closes. 12 bays, 3 tiers.</span></figure>
+      <figure class="plate pin span-5" style="--r:.8deg; margin-top:30px" data-r><img src="img/sketch/pencil_bay_clay_wide.jpg" alt="Pencil drawing over the clay render, planning damage and growth" loading="lazy"><figcaption><b>Overdraw</b></figcaption><span class="hand">drew over the clay to plan where it breaks and what grows.</span></figure>
+      <figure class="plate tape span-3" style="--r:-1.5deg; margin-top:70px" data-r><img src="img/process/m1_wall.jpg" alt="Early wall test with moss painted as a texture" loading="lazy"><figcaption><b>Moss v1</b></figcaption><span class="hand">painted moss reads like carpet.</span></figure>
+      <figure class="plate tape span-4" style="--r:1deg; margin-top:24px" data-r data-mk="arrow" data-mk-pts="-0.32,0.92,0.12,0.6"><img src="img/process/ashlar_check.jpg" alt="Debug image: the mesh's joint grooves drawn in red over the stone texture" loading="lazy"><figcaption><b>Masonry check</b></figcaption><span class="hand hand--red">red = grooves in the mesh. they had to land on the painted joints.</span></figure>
+    </div>
+    <div style="margin-top:70px" data-r>
+      <p class="mnote" style="--r:-1deg; margin-bottom:14px">the wall, three rounds &mdash; v9 &rarr; v10 &rarr; v11</p>
+      <div class="iter iter--3">
+        <figure><img src="img/process/hp_wall_v9.jpg" alt="Wall detail, round 9" loading="lazy"><figcaption><b>v9</b>ivy too even</figcaption></figure>
+        <figure><img src="img/process/hp_wall_v10.jpg" alt="Wall detail, round 10" loading="lazy"><figcaption><b>v10</b>moss on the ledges</figcaption></figure>
+        <figure class="yes"><img src="img/process/hp_wall_v11.jpg" alt="Wall detail, round 11" loading="lazy"><figcaption><b>v11</b>keep.</figcaption></figure>
+      </div>
+    </div>
+    <figure class="plate tape" style="--r:.4deg; margin-top:70px; max-width:640px" data-r>
+      <img src="img/process/tex_sheet.jpg" alt="Sheet of procedural textures: stone, paving, marble, moss, ivy and water maps" loading="lazy">
+      <figcaption><b>All maps are procedural</b>stone, ashlar, paving, marble, moss, leaves, water &mdash; every one is generated, none photographed</figcaption><span class="hand">(magenta = transparent. the leaf cards, before they became real leaves)</span>
+    </figure>
+    <span class="folio">&mdash; 2 &mdash;</span>
+  </div>
+</article>
+
+<!-- ============================================================== III. THE NIGHT OF BELLS -->
+<section class="ch" id="s-bells" data-station="dome" data-chapter="III|The Night of Bells" style="--h:240vh" data-fb="img/render/dome.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__num" aria-hidden="true">III</div>
+    <div class="ch__text">
+      <p class="kicker">Chapter III</p>
+      <h2>The Night of Bells</h2>
+      <p class="lore">In the year the chronicles call the Night of Bells, the ground moved. Every bell in the valley rang with no hand on the rope. The dome held &mdash; but its sixteen eyes cracked into wounds, the drain under the Eye collapsed, and the spring, with nowhere left to go, began to fill the ring.</p>
+      <p class="lore">By morning the floor was gone. By winter the thirteen steps down to it were gone too.</p>
+    </div>
+    <div class="annos">
+      <div class="anno" data-at="0,22.25,0" data-dx="80" data-dy="70"><i class="dot"></i><i class="lead"></i><span class="lbl">the oculus<small>&Oslash; 6 m</small></span></div>
+      <div class="anno" data-hole="2" data-dx="-120" data-dy="60"><i class="dot"></i><i class="lead"></i><span class="lbl">one of the sixteen eyes</span></div>
+    </div>
+    <div class="note" style="right:calc(var(--gutter) + 40px); bottom:18vh; --r:2deg"><p class="hand">sun 66&deg; up, azimuth 160&deg;.<br>17 shafts &mdash; the light comes in &ldquo;wrong&rdquo;.<br>that&rsquo;s the wound.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================== STORYBOARD (book) -->
+<article class="page" id="p-board" data-chapter="III|Storyboard">
+  <div class="page__in">
+    <div class="stain" style="left:-90px; bottom:120px; transform:rotate(-20deg) scale(.8)"></div>
+    <p class="kicker" data-r>Storyboard &middot; the Night of Bells</p>
+    <h2 data-r>Six panels, one night</h2>
+    <div class="board" data-r>
+      <figure><img src="img/sketch/story_0.jpg" alt="Storyboard panel 1: the ring, dry and intact" loading="lazy"><figcaption>the ring, dry. the Eye is a mirror.</figcaption></figure>
+      <figure><img src="img/sketch/story_1.jpg" alt="Storyboard panel 2: the dome from below, bells ringing" loading="lazy"><figcaption>midnight. the bells ring with nobody on the ropes.</figcaption></figure>
+      <figure><img src="img/sketch/story_2.jpg" alt="Storyboard panel 3: light through the cracked dome onto the statue" loading="lazy"><figcaption>the sixteen eyes crack &mdash; light in the wrong places.</figcaption></figure>
+      <figure><img src="img/sketch/story_3.jpg" alt="Storyboard panel 4: wide shot, everyone gone, the statue alone" loading="lazy"><figcaption>everyone runs. she doesn&rsquo;t.</figcaption></figure>
+      <figure><img src="img/sketch/story_4.jpg" alt="Storyboard panel 5: water at the base of the wall" loading="lazy"><figcaption>water finds the steps. thirteen, twelve, eleven&hellip;</figcaption></figure>
+      <figure><img src="img/sketch/story_5.jpg" alt="Storyboard panel 6: ivy over an arch, years later" loading="lazy"><figcaption>a hundred winters of ivy.</figcaption></figure>
+    </div>
+    <div class="grid" style="margin-top:90px">
+      <div class="span-5" data-r>
+        <p class="kicker">Finding the light</p>
+        <p class="lead">Five lighting rounds before the fog stopped eating the sun. The trick was the opposite of what I wanted: <em>less</em> haze, harder shafts, and letting the walls go almost black so the water could glow.</p>
+        <p class="mnote" style="--r:-2deg">L1 soup &rarr; L3 better &rarr; L5 the one.</p>
+      </div>
+      <div class="span-7" data-r>
+        <div class="keys keys--small">
+          <figure><img src="img/sketch/key_light_a.jpg" alt="Lighting key L1 A" loading="lazy"><figcaption>L1a</figcaption></figure>
+          <figure><img src="img/sketch/key_light_b.jpg" alt="Lighting key L1 B" loading="lazy"><figcaption>L1b</figcaption></figure>
+          <figure><img src="img/sketch/key_light_d.jpg" alt="Lighting key L2 D" loading="lazy"><figcaption>L2</figcaption></figure>
+          <figure><img src="img/sketch/key_light_g.jpg" alt="Lighting key L3 G" loading="lazy"><figcaption>L3</figcaption></figure>
+          <figure><img src="img/sketch/key_light_j.jpg" alt="Lighting key L4 J" loading="lazy"><figcaption>L4</figcaption></figure>
+          <figure data-mk="circle"><img src="img/sketch/key_light_m.jpg" alt="Lighting key L5 M" loading="lazy"><figcaption>L5 &#10003;</figcaption></figure>
+          <figure><img src="img/sketch/key_light_n.jpg" alt="Lighting key L5 N" loading="lazy"><figcaption>L5b</figcaption></figure>
+        </div>
+        <div class="iter iter--3" style="margin-top:22px">
+          <figure class="no"><img src="img/process/light_a.jpg" alt="Lighting test L1: thick fog" loading="lazy"><figcaption><b>L1</b>fog soup</figcaption></figure>
+          <figure><img src="img/process/light_g.jpg" alt="Lighting test L3" loading="lazy"><figcaption><b>L3</b>closer</figcaption></figure>
+          <figure class="yes"><img src="img/process/light_m.jpg" alt="Lighting test L5" loading="lazy"><figcaption><b>L5</b>yes</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:80px" data-r>
+      <p class="mnote" style="--r:-1deg; margin-bottom:14px">the hero frame, ten renders apart</p>
+      <div class="keys keys--small" style="grid-template-columns:repeat(10,minmax(0,1fr))">
+        <figure><img src="img/process/evo_00.jpg" alt="Hero frame, version 1" loading="lazy" style="aspect-ratio:9/16"><figcaption>01</figcaption></figure>
+        <figure><img src="img/process/evo_01.jpg" alt="Hero frame, version 2" loading="lazy" style="aspect-ratio:9/16"><figcaption>02</figcaption></figure>
+        <figure><img src="img/process/evo_02.jpg" alt="Hero frame, version 3" loading="lazy" style="aspect-ratio:9/16"><figcaption>03</figcaption></figure>
+        <figure><img src="img/process/evo_03.jpg" alt="Hero frame, version 4" loading="lazy" style="aspect-ratio:9/16"><figcaption>04</figcaption></figure>
+        <figure><img src="img/process/evo_04.jpg" alt="Hero frame, version 5" loading="lazy" style="aspect-ratio:9/16"><figcaption>05</figcaption></figure>
+        <figure><img src="img/process/evo_05.jpg" alt="Hero frame, version 6" loading="lazy" style="aspect-ratio:9/16"><figcaption>06</figcaption></figure>
+        <figure><img src="img/process/evo_06.jpg" alt="Hero frame, version 7" loading="lazy" style="aspect-ratio:9/16"><figcaption>07</figcaption></figure>
+        <figure><img src="img/process/evo_07.jpg" alt="Hero frame, version 8" loading="lazy" style="aspect-ratio:9/16"><figcaption>08</figcaption></figure>
+        <figure><img src="img/process/evo_08.jpg" alt="Hero frame, version 9" loading="lazy" style="aspect-ratio:9/16"><figcaption>09</figcaption></figure>
+        <figure data-mk="circle"><img src="img/process/evo_09.jpg" alt="Hero frame, final" loading="lazy" style="aspect-ratio:9/16"><figcaption>10 &#10003;</figcaption></figure>
+      </div>
+    </div>
+    <span class="folio">&mdash; 3 &mdash;</span>
+  </div>
+</article>
+
+<!-- ============================================================== IV. LA CUSTODE -->
+<section class="ch" id="s-custode" data-station="statue" data-chapter="IV|La Custode" style="--h:250vh" data-fb="img/render/statue.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade ch__shade--r"></div>
+    <div class="ch__num ch__num--r" aria-hidden="true">IV</div>
+    <div class="ch__text ch__text--r">
+      <p class="kicker">Chapter IV</p>
+      <h2>La Custode</h2>
+      <p class="lore">She was carved for the plinth over the Eye: a woman pressing a folded sheet to her chest &mdash; the gesture of someone keeping something dry. After the flood they found her turned. Not toppled. <em>Turned</em> &mdash; to face the door.</p>
+      <p class="lore">Every keeper since has written the same line in the log: <em>she faces whoever comes in.</em></p>
+      <p class="inscr" style="margin-top:22px">AQVAM &bull; TENEO &bull; DONEC &bull; REDEAS</p>
+      <p class="inscr-tr">I hold the water until you return.</p>
+    </div>
+    <div class="annos">
+      <div class="anno" data-at="0.05,3.85,0.32" data-statue data-dx="-50" data-dy="-120"><i class="dot"></i><i class="lead"></i><span class="lbl">the sheet<small>the water she promised to hold</small></span></div>
+    </div>
+    <div class="note" style="left:var(--gutter); top:20vh; --r:-5deg"><p class="hand">(did she just move?)</p></div>
+  </div>
+</section>
+
+<!-- ============================================================== MAKING: HER FACE (book) -->
+<article class="page" id="p-face" data-chapter="IV|Five faces">
+  <div class="page__in">
+    <p class="kicker" data-r>The making of &middot; La Custode</p>
+    <h2 data-r>Five faces</h2>
+    <div class="grid">
+      <div class="span-6">
+        <p class="lead" data-r>She is a signed-distance field: capsules, folds and a skull blended together with smooth minimums, then meshed into 1.2&nbsp;million triangles. At full resolution she ran out of memory &mdash; fourteen full-size arrays held at once for one blend &mdash; so the blend learned to stream, slab by slab.</p>
+        <p data-r>The harder problem wasn&rsquo;t memory. It was her expression. A statue that waits has to look like she&rsquo;s waiting, and every face I made looked like she was doing something else.</p>
+      </div>
+      <figure class="plate tape c8-5" style="--r:1.5deg" data-r><img src="img/process/statue_v0_front.jpg" alt="The first statue: a featureless draped figure in clay" loading="lazy"><figcaption><b>Week 1</b></figcaption><span class="hand">she started as a ghost in a bedsheet.</span></figure>
+    </div>
+    <div class="iter" style="margin-top:56px" data-r>
+      <figure class="no"><img src="img/process/head_v1_front.jpg" alt="Head version 1" loading="lazy"><figcaption><b>v1</b>mannequin</figcaption></figure>
+      <figure class="no"><img src="img/process/head_v2_front.jpg" alt="Head version 2" loading="lazy"><figcaption><b>v2</b>smiling at nothing</figcaption></figure>
+      <figure class="no"><img src="img/process/head_v3_front.jpg" alt="Head version 3" loading="lazy"><figcaption><b>v3</b>startled</figcaption></figure>
+      <figure class="no"><img src="img/process/head_v4_front.jpg" alt="Head version 4" loading="lazy"><figcaption><b>v4</b>asleep?</figcaption></figure>
+      <figure class="yes" data-mk="circle"><img src="img/process/head_v5_front.jpg" alt="Head version 5, the final face" loading="lazy"><figcaption><b>v5</b>waiting. yes.</figcaption></figure>
+    </div>
+    <div class="grid" style="margin-top:70px">
+      <figure class="plate pin span-4" style="--r:-1.2deg" data-r><img src="img/sketch/pencil_head_v5_front.jpg" alt="Pencil study of the final face" loading="lazy"><figcaption><b>Study</b></figcaption><span class="hand">open almond eyes, neutral mouth, hair swept back like it&rsquo;s wet.</span></figure>
+      <div class="span-8" data-r>
+        <div class="iter iter--4">
+          <figure class="no"><img src="img/process/body_b0_front.jpg" alt="Body version b0" loading="lazy"><figcaption><b>b0</b>stiff</figcaption></figure>
+          <figure class="no"><img src="img/process/body_b1_front.jpg" alt="Body version b1" loading="lazy"><figcaption><b>b1</b>flat back</figcaption></figure>
+          <figure><img src="img/process/body_b2_front.jpg" alt="Body version b2" loading="lazy"><figcaption><b>b2</b>folds!</figcaption></figure>
+          <figure class="yes"><img src="img/process/body_b3_front.jpg" alt="Body version b3, final" loading="lazy"><figcaption><b>b3</b>folds that fall</figcaption></figure>
+        </div>
+        <p class="mnote mnote--red" style="--r:-2deg; margin-top:22px">the skirt&rsquo;s back was sliced flat by the evaluation bounds for two rounds before I noticed. &larr; b1</p>
+      </div>
+    </div>
+    <span class="folio">&mdash; 4 &mdash;</span>
+  </div>
+</article>
+
+<!-- ============================================================== V. GREEN WATER -->
+<section class="ch" id="s-water" data-station="water" data-chapter="V|Green Water" style="--h:220vh" data-fb="img/render/waterline.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__num" aria-hidden="true">V</div>
+    <div class="ch__text">
+      <p class="kicker">Chapter V</p>
+      <h2>Green Water</h2>
+      <p class="lore">The water isn&rsquo;t dirty. It&rsquo;s alive &mdash; algae fed by seventeen shafts of sun, and copper weeping from the old roof cramps. Green is the colour of a room that&rsquo;s still breathing.</p>
+      <p class="lore">I keyed every frame around it: stone neutral, sun warm, and the water the only loud thing in the room.</p>
+    </div>
+    <div class="annos">
+      <div class="anno" data-at="1.6,0.02,1.6" data-dx="110" data-dy="-90"><i class="dot"></i><i class="lead"></i><span class="lbl">foam<small>where stone breaks the surface</small></span></div>
+      <div class="anno" data-at="2.6,-0.62,3.3" data-dx="150" data-dy="40"><i class="dot"></i><i class="lead"></i><span class="lbl">caustics<small>only below the line</small></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== VI. WHAT GROWS -->
+<section class="ch" id="s-grows" data-station="ivy" data-chapter="VI|What Grows" style="--h:230vh" data-fb="img/render/ivyarch.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__num" aria-hidden="true">VI</div>
+    <div class="ch__text">
+      <p class="kicker">Chapter VI</p>
+      <h2>What Grows</h2>
+      <p class="lore">Ivy climbs toward the eyes. Moss takes the ledges where the drip lands. Ferns find the joints. Nothing grows on her &mdash; the keepers say she shrugs it off; I say it&rsquo;s the marble. (All right, a little moss. She&rsquo;s eight hundred years old.)</p>
+      <div class="stats">
+        <div><b data-count="354150">0</b><span>ivy leaves, real 3D</span></div>
+        <div><b data-count="185000">0</b><span>moss cushions</span></div>
+        <div><b data-count="597140">0</b><span>instances in the full scene</span></div>
+        <div><b data-count="1.55" data-dec="2" data-suf=" B">0</b><span>instanced triangles</span></div>
+      </div>
+    </div>
+    <div class="note" style="right:calc(var(--gutter) + 40px); top:16vh; --r:3deg"><p class="hand">this page carries about one in five of them &mdash; live.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================== MAKING: IVY (book) -->
+<article class="page" id="p-ivy" data-chapter="VI|Sticks, then leaves">
+  <div class="page__in">
+    <p class="kicker" data-r>The making of &middot; ivy</p>
+    <h2 data-r>Sticks, then leaves</h2>
+    <div class="grid">
+      <div class="span-5">
+        <p class="lead" data-r>Alpha cards are the usual trick for ivy: flat quads with a picture of leaves on them. Seen edge-on they collapse into lines &mdash; and my walls looked like they were covered in twigs. Two days of &ldquo;why does it look like a broom&rdquo;.</p>
+        <p data-r>The fix was brute force. Every card became real leaves: eight shapes, bent, veined and scattered along the vines &mdash; 354,150 of them, each one a little different in size, angle and colour.</p>
+      </div>
+      <figure class="plate tape c7-6" style="--r:-1deg" data-r><img src="img/process/ivy_cards.jpg" alt="Ivy built from alpha cards, reading as sticks when seen edge-on" loading="lazy"><figcaption><b>The problem</b></figcaption><span class="hand hand--red" style="display:inline-block" data-mk="underline">cards seen edge-on = sticks.</span></figure>
+      <figure class="plate tape span-4" style="--r:1.4deg; margin-top:30px" data-r><img src="img/process/dbg_stems.jpg" alt="Debug render with only the ivy stems visible" loading="lazy"><figcaption><b>Skeleton</b></figcaption><span class="hand">stems only. the vines climb toward light.</span></figure>
+      <div class="span-8" style="margin-top:40px" data-r>
+        <div class="iter iter--3">
+          <figure class="no"><img src="img/process/leaf_old.jpg" alt="Old leaf texture with crude venation" loading="lazy"><figcaption><b>leaf v1</b>veins like a fishbone</figcaption></figure>
+          <figure class="yes"><img src="img/process/leaf_new.jpg" alt="New leaf texture with natural venation" loading="lazy"><figcaption><b>leaf v3</b>palmate veins, lobes</figcaption></figure>
+          <figure><img src="img/process/leaf_atlas.jpg" alt="Atlas of eight leaf variations" loading="lazy"><figcaption><b>atlas</b>eight of them</figcaption></figure>
+        </div>
+      </div>
+      <figure class="plate plate--frame tape span-7" style="--r:.6deg; margin-top:40px" data-r><img src="img/render/ivyarch.jpg" alt="Final render: an arch draped in 3D ivy" loading="lazy"><figcaption><b>Fig. 2</b>after: an arch in 3D ivy, Cycles</figcaption></figure>
+      <div class="span-4" style="margin-top:90px" data-r>
+        <p class="mnote" style="--r:-3deg">moss: 185k cushions, only where water drips &mdash; ledges, capitals, the tops of things.</p>
+        <figure class="plate tape" style="--r:2deg; margin-top:26px"><img src="img/render/ledge.jpg" alt="Final render: moss cushions on a ledge" loading="lazy"><figcaption><b>Fig. 3</b>ledge</figcaption></figure>
+      </div>
+    </div>
+    <span class="folio">&mdash; 5 &mdash;</span>
+  </div>
+</article>
+
+<!-- ============================================================== VII. NO ENTRY -->
+<section class="ch" id="s-noentry" data-station="door" data-chapter="VII|No Entry" style="--h:300vh" data-fb="img/render/hero.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__num ch__num--r" aria-hidden="true">VII</div>
+    <div class="ch__text ch__text--top rule">
+      <p class="kicker">Chapter VII</p>
+      <h2>No Entry &mdash; why?</h2>
+      <p class="lore" data-rule="0">Here is the rule. Every time someone steps through the door, the water rises &mdash; one finger&rsquo;s width. Nobody knows why.</p>
+      <p class="lore" data-rule="1">The keepers measured it for two hundred years on the back of that board: one scratch per visitor. That&rsquo;s what the sign is for. It isn&rsquo;t there to keep you out. It&rsquo;s there to keep <em>her</em> from drowning.</p>
+      <p class="lore" data-rule="2">The day the water reaches her hands, she stops holding it.</p>
+      <p class="lore lore--big" data-rule="3">And when this page loaded, she turned to look at you. You&rsquo;ve already come in.</p>
+      <p class="finger-count" data-rule="3"></p>
+    </div>
+    <div class="annos">
+      <div class="anno" data-sign data-dx="150" data-dy="-70"><i class="dot"></i><i class="lead"></i><span class="lbl">NO ENTRY<small>painted for whoever is about to come in</small></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== MAKING: WHAT BROKE (book) -->
+<article class="page" id="p-broke" data-chapter="VII|What broke">
+  <div class="page__in">
+    <div class="stain" style="right:6%; top:38%; transform:rotate(80deg) scale(.9)"></div>
+    <p class="kicker" data-r>The making of &middot; what broke</p>
+    <h2 data-r>Everything that went wrong<br><span class="hand" style="font-size:.42em; color:var(--muted)">(a partial list)</span></h2>
+    <div class="hurdles" style="margin-top:60px">
+      <div class="hurdle" data-r><span class="num">01</span><img src="img/process/wc_wall.jpg" alt="Early wall render" loading="lazy"><h3>Inside-out walls</h3><p>Bending the straight arcade around the circle mirrored it, and every face quietly turned inside out. Ivy grew <em>inside</em> the stone. Scatter landed on the undersides of ledges.</p><p class="fix">fix: flip on bend + a winding check on every export.</p></div>
+      <div class="hurdle" data-r><span class="num">02</span><img src="img/process/ivy_cards2.jpg" alt="Ivy cards reading as sticks" loading="lazy"><h3>Ivy made of sticks</h3><p>Alpha cards, edge-on. See page 5.</p><p class="fix">fix: 354,150 real leaves.</p></div>
+      <div class="hurdle" data-r><span class="num">03</span><img src="img/process/head_v2_q34.jpg" alt="An early head with an odd smile" loading="lazy"><h3>Her smile</h3><p>Version two smiled at nothing, like a shop mannequin. A statue that waits can&rsquo;t smile.</p><p class="fix">fix: neutral mouth, open eyes, v5.</p></div>
+      <div class="hurdle" data-r><span class="num">04</span><img src="img/process/statue_v0_head.jpg" alt="Early statue head study" loading="lazy"><h3>Out of memory</h3><p>The full-resolution statue needed fourteen full-size arrays at once and the machine simply killed it.</p><p class="fix">fix: a streaming smooth-max, evaluated in slabs.</p></div>
+      <div class="hurdle" data-r><span class="num">05</span><img src="img/ue/ue_00.jpg" alt="First Unreal render: yellow fog and a waxy statue" loading="lazy"><h3><span style="display:inline-block" data-mk="underline">First light in Unreal</span></h3><p>Yellow fog, waxy marble, neon-green water. The subsurface was far too strong and the fog far too warm.</p><p class="fix">first light is always wrong. that&rsquo;s what it&rsquo;s for.</p></div>
+      <div class="hurdle" data-r><span class="num">06</span><img src="img/process/dbg_instonly.jpg" alt="Debug render showing only the instanced foliage" loading="lazy"><h3>1.55 billion</h3><p>The final scene: 7.9&nbsp;million unique triangles and 597,140 instances, about 1.55 billion triangles once every leaf is counted.</p><p class="fix">this page: one in five of them.</p></div>
+    </div>
+    <div class="strip-wrap" data-strip>
+      <p class="mnote" style="--r:-1deg; margin:0 var(--gutter) 6px">first light in Unreal 5.6 &mdash; my own frames, before the fixes</p>
+      <div class="strip">
+        <figure><img src="img/ue/ue_07.jpg" alt="Unreal render: shafts under the dome" loading="lazy"><figcaption>the shafts worked first try</figcaption></figure>
+        <figure><img src="img/ue/ue_03.jpg" alt="Unreal render: the statue in bright green water" loading="lazy"><figcaption>water: too neon</figcaption></figure>
+        <figure><img src="img/ue/ue_08.jpg" alt="Unreal render: dome with ferns in the foreground" loading="lazy"><figcaption>ferns read well</figcaption></figure>
+        <figure><img src="img/ue/ue_02.jpg" alt="Unreal render: statue with yellow fog" loading="lazy"><figcaption>wax.</figcaption></figure>
+        <figure><img src="img/ue/ue_16.jpg" alt="Unreal render: statue framed by leaves" loading="lazy"><figcaption>framing through leaves</figcaption></figure>
+        <figure><img src="img/ue/ue_09.jpg" alt="Unreal render: shafts and the statue" loading="lazy"><figcaption>17 shafts</figcaption></figure>
+        <figure><img src="img/ue/ue_10.jpg" alt="Unreal render: moss pads" loading="lazy"><figcaption>moss pads, too bright</figcaption></figure>
+        <figure><img src="img/ue/ue_05.jpg" alt="Unreal render: top-down view" loading="lazy"><figcaption>from the oculus</figcaption></figure>
+        <figure><img src="img/ue/ue_12.jpg" alt="Unreal render: underwater" loading="lazy"><figcaption>underwater, by accident</figcaption></figure>
+      </div>
+    </div>
+    <span class="folio">&mdash; 6 &mdash;</span>
+  </div>
+</article>
+
+<!-- ============================================================== BREAKDOWN -->
+<section class="ch" id="s-breakdown" data-station="breakdown" data-chapter="&mdash;|Breakdown" style="--h:320vh" data-fb="img/render/above.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__text">
+      <p class="kicker">Breakdown</p>
+      <h2>How a frame is made</h2>
+      <ol class="modes">
+        <li data-mode="1"><b>01</b><span><strong>CLAY</strong>just the shapes &mdash; stone, statue, leaves</span></li>
+        <li data-mode="2"><b>02</b><span><strong>MASKS</strong>grime red, moss green, waterline blue: per-vertex data, identical in Blender, Unreal and here</span></li>
+        <li data-mode="3"><b>03</b><span><strong>LIGHT</strong>one sun through seventeen holes, and the room lighting itself</span></li>
+        <li data-mode="0"><b>04</b><span><strong>FINAL</strong>stone, moss, water, light shafts, dust</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== PLATES (dark book) -->
+<article class="page page--dark" id="p-plates" data-chapter="&mdash;|Plates">
+  <div class="page__in">
+    <p class="kicker" data-r>Plates</p>
+    <h2 data-r>Final frames</h2>
+    <p class="lead" data-r style="color:#cfc9ba">Path-traced in Cycles from the same procedural scene. The sketches beside them were drawn over the renders &mdash; that&rsquo;s how I planned the next round.</p>
+    <div class="gallery" style="margin-top:40px">
+      <figure data-r><img src="img/render/hero.jpg" alt="Final render: the statue from above, light falling on her" loading="lazy"><figcaption>Hero <span class="hand">the reel&rsquo;s first frame</span></figcaption></figure>
+      <figure data-r><img src="img/render/wide.jpg" alt="Final render: wide view across the flooded rotunda" loading="lazy"><figcaption>Wide <span class="hand">across the water</span></figcaption></figure>
+      <figure data-r><img src="img/sketch/pencil_wide.jpg" alt="Pencil study of the wide view" loading="lazy"><figcaption>Study <span class="hand">pencil over the wide</span></figcaption></figure>
+      <figure data-r><img src="img/render/statue.jpg" alt="Final render: La Custode close up" loading="lazy"><figcaption>La Custode <span class="hand">50 mm</span></figcaption></figure>
+      <figure data-r><img src="img/render/dome.jpg" alt="Final render: looking up into the dome" loading="lazy"><figcaption>Dome <span class="hand">sixteen eyes and the oculus</span></figcaption></figure>
+      <figure data-r><img src="img/render/above.jpg" alt="Final render: the rotunda from the gallery" loading="lazy"><figcaption>Above <span class="hand">from the gallery</span></figcaption></figure>
+      <figure data-r><img src="img/render/reel.jpg" alt="Final render: the reel frame" loading="lazy"><figcaption>Reel <span class="hand">1080&times;1920</span></figcaption></figure>
+      <figure data-r><img src="img/sketch/pencil_ivyarch.jpg" alt="Pencil study of an ivy-covered arch" loading="lazy"><figcaption>Study <span class="hand">ivy arch</span></figcaption></figure>
+      <figure data-r><img src="img/render/waterline.jpg" alt="Final render: the waterline at the base of a column" loading="lazy"><figcaption>Waterline <span class="hand">where the stone gets wet</span></figcaption></figure>
+      <figure data-r><img src="img/render/ledge.jpg" alt="Final render: moss on a ledge" loading="lazy"><figcaption>Ledge <span class="hand">moss + ferns</span></figcaption></figure>
+      <figure data-r><img src="img/sketch/value_dome.jpg" alt="Value study of the dome view" loading="lazy"><figcaption>Value study <span class="hand">four greys</span></figcaption></figure>
+      <figure data-r><img src="img/render/ivyarch.jpg" alt="Final render: arch in ivy" loading="lazy"><figcaption>Ivy arch <span class="hand">3D leaves</span></figcaption></figure>
+    </div>
+    <span class="folio">&mdash; 7 &mdash;</span>
+  </div>
+</article>
+
+<!-- ============================================================== EPILOGUE -->
+<section class="ch" id="s-finale" data-station="finale" data-chapter="&mdash;|Epilogue" style="--h:240vh" data-fb="img/render/above.jpg">
+  <div class="ch__stage">
+    <div class="ch__shade"></div>
+    <div class="ch__text">
+      <p class="kicker">Epilogue</p>
+      <h2>She&rsquo;s still there</h2>
+      <p class="lore">The water is a little higher than when you arrived. Sorry &mdash; that&rsquo;s on both of us.</p>
+      <p class="lore">Close the door on your way out. She&rsquo;ll keep holding it.</p>
+      <p class="scrawl" style="margin-top:26px; color:var(--bone)">&mdash; Sumanth</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="colophon">
+  <div class="in">
+    <div>
+      <p class="sig">Sumanth</p>
+      <p>The Flooded Rotunda &mdash; a world-building sketchbook. 2026.</p>
+      <p>Inspired by a reel by <em>simonzhang.art</em>. Every model, texture, render and sketch here was made for this project.</p>
+    </div>
+    <div>
+      <h4>BUILT WITH</h4>
+      <p>Python (procedural geometry, textures, scattering)<br>Blender &amp; Cycles<br>Unreal Engine 5.6<br>three.js, GSAP, Lenis</p>
+    </div>
+    <div>
+      <h4>BY THE NUMBERS</h4>
+      <p>7.9 M unique triangles &middot; 597,140 instances<br>this page: 0.7 M triangles + 111 k instances<br>set in Cinzel, Cormorant Garamond, Caveat, Reenie Beanie &amp; Space Grotesk</p>
+    </div>
+  </div>
+</footer>
+
+<div class="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged image"><img alt=""></div>
+<div class="cursor" aria-hidden="true"><i></i></div>
+
+<!-- emblem: the ring of twelve, broken at the door -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="brush" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="3.2"/></filter>
+    <symbol id="emblem" viewBox="0 0 100 100">
+      <g filter="url(#brush)" fill="none" stroke="currentColor" stroke-linecap="round">
+        <path d="M 43.6 85.4 A 36 36 0 1 1 56.4 85.4" stroke-width="7"/>
+        <g stroke-width="2.2">
+          <line x1="50" y1="7" x2="50" y2="2"/><line x1="71.5" y1="12.8" x2="74" y2="8.5"/><line x1="87.2" y1="28.5" x2="91.5" y2="26"/>
+          <line x1="93" y1="50" x2="98" y2="50"/><line x1="87.2" y1="71.5" x2="91.5" y2="74"/><line x1="71.5" y1="87.2" x2="74" y2="91.5"/>
+          <line x1="28.5" y1="87.2" x2="26" y2="91.5"/><line x1="12.8" y1="71.5" x2="8.5" y2="74"/>
+          <line x1="7" y1="50" x2="2" y2="50"/><line x1="12.8" y1="28.5" x2="8.5" y2="26"/><line x1="28.5" y1="12.8" x2="26" y2="8.5"/>
+        </g>
+        <circle cx="50" cy="50" r="6" stroke-width="2.4"/>
+        <path d="M 50 92 l 0 6" stroke-width="2.2"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<script src="vendor/gsap/gsap.min.js"></script>
+<script src="vendor/gsap/ScrollTrigger.min.js"></script>
+<script src="vendor/lenis/lenis.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
