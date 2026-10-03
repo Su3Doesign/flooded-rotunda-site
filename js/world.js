@@ -32,11 +32,12 @@ export const G = {
   tMossBC: { value: null },
   tMossN: { value: null },
   tMossORH: { value: null },
+  tNoise: { value: null },
 };
 
 const QUALITY = {
   low: { dpr: 1.0, frac: 0.22, shadow: 2048, bloom: false, msaa: 0, dust: 900 },
-  medium: { dpr: 1.25, frac: 0.55, shadow: 2048, bloom: true, msaa: 4, dust: 2200 },
+  medium: { dpr: 1.25, frac: 0.45, shadow: 2048, bloom: true, msaa: 2, dust: 1800 },
   high: { dpr: 1.75, frac: 1.0, shadow: 4096, bloom: true, msaa: 4, dust: 3600 },
 };
 
@@ -74,11 +75,14 @@ uniform float uPocheK; uniform float uDomeCut;
 varying vec4 vMasks; varying vec3 vWPos;
 ${NOISE}`)
       .replace('#include <map_fragment>', `
+float dedge = 0.0;
 ${opts.dome ? `
-float dsv = fbm2(vWPos.xz * 0.21 + vec2(vWPos.y * 0.37, 0.0)) * 0.85 + vnoise(vWPos.xz * 3.1 + vWPos.y) * 0.15;
-float dcut = uDomeCut * 1.25 - 0.12;
-if (dsv < dcut) discard;
-float dedge = 1.0 - smoothstep(dcut, dcut + 0.035, dsv);` : 'float dedge = 0.0;'}
+if (uDomeCut > 0.001) {
+  float dsv = fbm2(vWPos.xz * 0.21 + vec2(vWPos.y * 0.37, 0.0)) * 0.85 + vnoise(vWPos.xz * 3.1 + vWPos.y) * 0.15;
+  float dcut = uDomeCut * 1.25 - 0.12;
+  if (dsv < dcut) discard;
+  dedge = 1.0 - smoothstep(dcut, dcut + 0.035, dsv);
+}` : ''}
 vec4 stoneTex = texture2D(map, vMapUv);
 vec4 orh = texture2D(tStoneORH, vMapUv);
 vec2 muv = vMapUv * uMossTile;
@@ -155,15 +159,14 @@ ${opts.translucent ? `totalEmissiveRadiance += diffuseColor.rgb * uSunCol * 0.05
 
 function shaftMaterial() {
   return new THREE.ShaderMaterial({
-    uniforms: { uTime: G.uTime, uClipY: G.uClipY, uIntensity: { value: 1 }, uColor: { value: new THREE.Color(1.0, 0.86, 0.66) }, uAxis: { value: new THREE.Vector3(0, 1, 0) } },
+    uniforms: { uTime: G.uTime, uClipY: G.uClipY, tNoise: G.tNoise, uIntensity: { value: 1 }, uColor: { value: new THREE.Color(1.0, 0.86, 0.66) }, uAxis: { value: new THREE.Vector3(0, 1, 0) } },
     vertexShader: /* glsl */`
       varying vec2 vUv; varying vec3 vN; varying vec3 vP;
       void main(){ vUv = uv; vN = normalize(mat3(modelMatrix) * normal); vec4 wp = modelMatrix * vec4(position, 1.0); vP = wp.xyz;
         gl_Position = projectionMatrix * viewMatrix * wp; }`,
     fragmentShader: /* glsl */`
-      uniform float uTime; uniform float uClipY; uniform float uIntensity; uniform vec3 uColor; uniform vec3 uAxis;
+      uniform float uTime; uniform float uClipY; uniform float uIntensity; uniform vec3 uColor; uniform vec3 uAxis; uniform sampler2D tNoise;
       varying vec2 vUv; varying vec3 vN; varying vec3 vP;
-      ${NOISE}
       void main(){
         if (vP.y > uClipY) discard;
         vec3 V = normalize(cameraPosition - vP);
@@ -173,7 +176,8 @@ function shaftMaterial() {
         edge = mix(edge, 0.5, smoothstep(0.45, 0.95, ax));
         float along = vUv.y;
         float fade = smoothstep(1.0, 0.9, along) * smoothstep(0.0, 0.22, along) * (0.45 + 0.55 * along);
-        float n = vnoise3(vP * 0.8 + vec3(0.0, uTime * 0.09, uTime * 0.035)) * 0.6 + vnoise3(vP * 2.3 - vec3(uTime * 0.05)) * 0.4;
+        float n = texture2D(tNoise, (vP.xz + vP.y * vec2(0.61, -0.37)) * 0.025 + vec2(uTime * 0.0028, uTime * 0.0011)).b * 0.6
+                + texture2D(tNoise, (vP.xz * 2.9 + vP.y * vec2(-1.3, 0.9)) * 0.025 - vec2(uTime * 0.0016)).r * 0.4;
         float a = edge * fade * (0.45 + 0.75 * n) * uIntensity * 0.3 * (1.0 + 0.5 * smoothstep(0.55, 1.0, ax));
         gl_FragColor = vec4(uColor * a, 1.0);
       }`,
@@ -229,12 +233,14 @@ function skyMaterial(sunDir) {
 
 const POST_VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 const POST_FS = /* glsl */`
-uniform sampler2D tScene; uniform sampler2D tDepth; uniform sampler2D tPaper;
+uniform sampler2D tScene; uniform sampler2D tDepth; uniform sampler2D tPaper; uniform sampler2D tNoise;
 uniform vec2 uRes; uniform float uTime; uniform float uSketch; uniform float uPaperMode; uniform float uNear; uniform float uFar;
 uniform float uVignette; uniform float uGrain; uniform float uFade; uniform vec3 uFadeColor; uniform float uCA; uniform float uPx; uniform float uGrade;
 varying vec2 vUv;
-${NOISE}
 #include <packing>
+// all noise comes from one small precomputed texture: r,g = value noise, b = fbm (32 cells across, tileable)
+vec4 tN(vec2 p){ return texture2D(tNoise, p * 0.03125); }
+float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float linDepth(vec2 uv){ return -perspectiveDepthToViewZ(texture2D(tDepth, uv).x, uNear, uFar); }
 vec3 tmap(vec3 c){
 #ifdef TONE_MAPPING
@@ -248,10 +254,11 @@ float hatch(vec2 p, float ang, float spacing, float jit){
   vec2 d = vec2(cos(ang), sin(ang));
   float v = dot(p, vec2(-d.y, d.x)) / spacing;
   float along = dot(p, d);
-  float f = abs(fract(v + (vnoise(p * 0.012 + jit) - 0.5) * 0.7) - 0.5);
+  vec4 n = tN(p * 0.012 + jit);
+  float f = abs(fract(v + (n.r - 0.5) * 0.7) - 0.5);
   float line = smoothstep(0.2, 0.04, f);
-  float brk = smoothstep(0.22, 0.42, vnoise(vec2(along / (spacing * 10.0), floor(v) * 1.73) + jit * 3.1));
-  return line * brk * (0.55 + 0.45 * vnoise(vec2(floor(v) * 3.1, jit)));
+  float brk = smoothstep(0.22, 0.42, tN(vec2(along / (spacing * 10.0), floor(v) * 1.73) + jit * 3.1).g);
+  return line * brk * (0.55 + 0.45 * n.b);
 }
 void main(){
   vec2 uv = vUv;
@@ -259,47 +266,46 @@ void main(){
   vec3 hdr = vec3(texture2D(tScene, uv + cav).r, texture2D(tScene, uv).g, texture2D(tScene, uv - cav).b);
   vec3 col = tmap(hdr);
   if (uSketch > 0.002) {
-    float tq = floor(uTime * 8.0);
-    vec2 px = 1.0 / uRes;
-    vec2 wob = (vec2(vnoise(uv * 6.0 + tq * 1.7), vnoise(uv * 6.0 + 31.0 + tq * 1.3)) - 0.5) * px * 3.0 * uPx;
-    vec2 suv = uv + wob;
-    float dxp = log(linDepth(suv + vec2(px.x, 0.0))), dxm = log(linDepth(suv - vec2(px.x, 0.0)));
-    float dyp = log(linDepth(suv + vec2(0.0, px.y))), dym = log(linDepth(suv - vec2(0.0, px.y)));
-    float eD = smoothstep(0.025, 0.11, length(vec2(dxp - dxm, dyp - dym)));
-    vec2 o = px * 1.5;
-    float lx = lum(tmap(texture2D(tScene, suv + vec2(o.x, 0.0)).rgb)) - lum(tmap(texture2D(tScene, suv - vec2(o.x, 0.0)).rgb));
-    float ly = lum(tmap(texture2D(tScene, suv + vec2(0.0, o.y)).rgb)) - lum(tmap(texture2D(tScene, suv - vec2(0.0, o.y)).rgb));
-    float eL = smoothstep(0.09, 0.32, length(vec2(lx, ly)));
-    float edge = clamp(max(eD, eL * 0.85), 0.0, 1.0);
-    float L = pow(lum(tmap(texture2D(tScene, suv).rgb)), 0.75);
-    vec2 p = gl_FragCoord.xy / uPx;
-    float sp = 6.0;
-    // graphite on cream paper: strokes where it is dark
-    float t = 1.0 - L;
-    float hG = hatch(p, 0.79, sp, tq) * smoothstep(0.28, 0.5, t) + hatch(p, -0.79, sp, tq + 5.0) * smoothstep(0.5, 0.72, t)
-             + hatch(p, 0.12, sp * 0.75, tq + 9.0) * smoothstep(0.74, 0.92, t);
-    float ink = clamp(edge * 0.95 + hG * 0.6, 0.0, 1.0);
-    // empty background is blank paper; its faint lines (the plan drawn on the ground) stay as pencil lines
-    float isBg = step(0.999999, texture2D(tDepth, suv).x);
-    float bgLine = smoothstep(0.06, 0.4, L) * (1.0 - smoothstep(0.65, 0.95, L));
-    ink = mix(ink, bgLine * 0.85, isBg);
-    // chalk on dark paper: strokes where it is light
-    float hC = hatch(p, 0.79, sp, tq) * smoothstep(0.24, 0.44, L) + hatch(p, -0.79, sp, tq + 5.0) * smoothstep(0.46, 0.66, L)
-             + hatch(p, 0.12, sp * 0.75, tq + 9.0) * smoothstep(0.7, 0.88, L);
-    float chalk = clamp(edge * 0.85 + hC * 0.6 + smoothstep(0.78, 1.0, L) * 0.4, 0.0, 1.0);
-    chalk = mix(chalk, bgLine * 0.8 + smoothstep(0.7, 1.0, L) * 0.5, isBg);
-    vec3 pt = texture2D(tPaper, gl_FragCoord.xy / (1024.0 * uPx)).rgb;
-    vec3 dark = mix(vec3(0.011, 0.013, 0.011) * (0.65 + 0.7 * pt.r), vec3(0.78, 0.75, 0.69), chalk);
-    vec3 cream = mix(pt, vec3(0.045, 0.04, 0.035), ink);
-    vec3 sk = mix(dark, cream, uPaperMode);
-    float red = smoothstep(0.08, 0.2, col.r - max(col.g, col.b) * 1.4);
-    sk = mix(sk, vec3(0.42, 0.05, 0.04), red * 0.85);
-    sk += (col - vec3(lum(col))) * mix(0.1, 0.2, uPaperMode);
-    // ink-wash dissolve: soft large blooms with a fine paper-grain edge
+    // ink-wash dissolve mask first: pixels the sketch has not reached skip all the work below
     vec2 nuv = uv * vec2(uRes.x / uRes.y, 1.0);
-    float n = fbm2(nuv * 1.7 + 3.1) * 0.62 + fbm2(nuv * 5.3 - 1.7) * 0.28 + vnoise(gl_FragCoord.xy * 0.09 / uPx) * 0.1;
+    float n = tN(nuv * 1.7 + 3.1).b * 0.62 + tN(nuv * 5.3 - 1.7).b * 0.28 + tN(gl_FragCoord.xy * 0.09 / uPx).r * 0.1;
     float k = smoothstep(n - 0.11, n + 0.11, uSketch * 1.24 - 0.12);
-    col = mix(col, sk, k);
+    if (k > 0.002) {
+      float tq = floor(uTime * 8.0);
+      vec2 px = 1.0 / uRes;
+      vec2 wob = (tN(uv * 6.0 + vec2(tq * 1.7, tq * 1.3)).rg - 0.5) * px * 3.0 * uPx;
+      vec2 suv = uv + wob;
+      float dxp = log(linDepth(suv + vec2(px.x, 0.0))), dxm = log(linDepth(suv - vec2(px.x, 0.0)));
+      float dyp = log(linDepth(suv + vec2(0.0, px.y))), dym = log(linDepth(suv - vec2(0.0, px.y)));
+      float eD = smoothstep(0.025, 0.11, length(vec2(dxp - dxm, dyp - dym)));
+      vec2 o = px * 1.5;
+      float lx = lum(tmap(texture2D(tScene, suv + vec2(o.x, 0.0)).rgb)) - lum(tmap(texture2D(tScene, suv - vec2(o.x, 0.0)).rgb));
+      float ly = lum(tmap(texture2D(tScene, suv + vec2(0.0, o.y)).rgb)) - lum(tmap(texture2D(tScene, suv - vec2(0.0, o.y)).rgb));
+      float eL = smoothstep(0.09, 0.32, length(vec2(lx, ly)));
+      float edge = clamp(max(eD, eL * 0.85), 0.0, 1.0);
+      float L = pow(lum(tmap(texture2D(tScene, suv).rgb)), 0.75);
+      vec2 p = gl_FragCoord.xy / uPx;
+      float sp = 6.0;
+      // the three stroke layers are shared by both papers; only the tones that switch them on differ
+      float h1 = hatch(p, 0.79, sp, tq), h2 = hatch(p, -0.79, sp, tq + 5.0), h3 = hatch(p, 0.12, sp * 0.75, tq + 9.0);
+      float t = 1.0 - L;
+      float ink = clamp(edge * 0.95 + (h1 * smoothstep(0.28, 0.5, t) + h2 * smoothstep(0.5, 0.72, t) + h3 * smoothstep(0.74, 0.92, t)) * 0.6, 0.0, 1.0);
+      float chalk = clamp(edge * 0.85 + (h1 * smoothstep(0.24, 0.44, L) + h2 * smoothstep(0.46, 0.66, L) + h3 * smoothstep(0.7, 0.88, L)) * 0.6
+                          + smoothstep(0.78, 1.0, L) * 0.4, 0.0, 1.0);
+      // empty background is blank paper; its faint lines (the plan drawn on the ground) stay as pencil lines
+      float isBg = step(0.999999, texture2D(tDepth, suv).x);
+      float bgLine = smoothstep(0.06, 0.4, L) * (1.0 - smoothstep(0.65, 0.95, L));
+      ink = mix(ink, bgLine * 0.85, isBg);
+      chalk = mix(chalk, bgLine * 0.8 + smoothstep(0.7, 1.0, L) * 0.5, isBg);
+      vec3 pt = texture2D(tPaper, gl_FragCoord.xy / (1024.0 * uPx)).rgb;
+      vec3 dark = mix(vec3(0.011, 0.013, 0.011) * (0.65 + 0.7 * pt.r), vec3(0.78, 0.75, 0.69), chalk);
+      vec3 cream = mix(pt, vec3(0.045, 0.04, 0.035), ink);
+      vec3 sk = mix(dark, cream, uPaperMode);
+      float red = smoothstep(0.08, 0.2, col.r - max(col.g, col.b) * 1.4);
+      sk = mix(sk, vec3(0.42, 0.05, 0.04), red * 0.85);
+      sk += (col - vec3(lum(col))) * mix(0.1, 0.2, uPaperMode);
+      col = mix(col, sk, k);
+    }
   }
   // grade: a touch of contrast, cool green-grey shadows, warm light (the Cycles keys)
   float gl = lum(col);
@@ -308,10 +314,40 @@ void main(){
   col = mix(vec3(lum(col)), col, mix(1.0, 0.9, uGrade));
   float vig = smoothstep(1.3, 0.3, length((uv - 0.5) * vec2(uRes.x / uRes.y, 1.0)));
   col *= mix(1.0, vig, uVignette);
-  col += (h21(gl_FragCoord.xy + fract(uTime * 7.31) * 113.0) - 0.5) * uGrain;
+  col += (hash(gl_FragCoord.xy + fract(uTime * 7.31) * 113.0) - 0.5) * uGrain;
   col = mix(col, uFadeColor, uFade);
   gl_FragColor = linearToOutputTexel(vec4(max(col, 0.0), 1.0));
 }`;
+
+// A tileable 256x256 noise texture (32 lattice cells across): r, g = smooth value noise, b = 4-octave fbm (octaves wrap
+// on the same lattice, so the texture still tiles).
+function makeNoiseTexture() {
+  const N = 256, C = 32, data = new Uint8Array(N * N * 4);
+  let seed = 1337;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const lattice = (period) => Float32Array.from({ length: period * period }, rnd);
+  const L = [lattice(C), lattice(C)];
+  const sample = (lat, period, x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+    const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+    const g = (i, j) => lat[((j % period + period) % period) * period + ((i % period + period) % period)];
+    return (g(xi, yi) * (1 - u) + g(xi + 1, yi) * u) * (1 - v) + (g(xi, yi + 1) * (1 - u) + g(xi + 1, yi + 1) * u) * v;
+  };
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const cx = x * C / N, cy = y * C / N;
+    const r = sample(L[0], C, cx, cy), g = sample(L[1], C, cx + 7.3, cy + 3.1);
+    const b = 0.5 * sample(L[1], C, cx, cy) + 0.25 * sample(L[0], C, cx * 2, cy * 2)
+      + 0.125 * sample(L[1], C, cx * 4, cy * 4) + 0.125 * sample(L[0], C, cx * 8, cy * 8);
+    const i = (y * N + x) * 4;
+    data[i] = r * 255; data[i + 1] = g * 255; data[i + 2] = Math.min(255, b * 255); data[i + 3] = 255;
+  }
+  const t = new THREE.DataTexture(data, N, N, THREE.RGBAFormat);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter;
+  t.generateMipmaps = false;
+  t.needsUpdate = true;
+  return t;
+}
 
 // ------------------------------------------------------------------------------------------------
 export class World {
@@ -328,6 +364,7 @@ export class World {
     r.shadowMap.type = THREE.PCFShadowMap;
     r.shadowMap.autoUpdate = false;
     this.clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1000);
+    r.clippingPlanes = [this.clipPlane];                         // constant 1000 m = nothing cut
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x0b0f0c);
@@ -341,7 +378,7 @@ export class World {
     this.target = new THREE.Vector3(0, 3.35, 0);
 
     this.params = { clip: 1000, sketch: 1, paper: 0, shafts: 1, dust: 1, fog: 0.012, exposure: 1.0, ground: 0, mode: 0, water: 0,
-      sky: 1, bloom: 0.35, track: 1, loaderLight: 1, vignette: 0.55, fade: 0, dome: 1, poche: 0, fill: 0 };
+      sky: 1, bloom: 0.35, track: 1, loaderLight: 1, vignette: 0.55, fade: 0, dome: 1, poche: 0, fill: 0, sun: 1 };
     this.statueYaw = 0;
     this.statueMode = 'spin';
     this.spinSpeed = 0.55;
@@ -394,13 +431,14 @@ export class World {
   // ---------------------------------------------------------------- post
   _initPost() {
     const r = this.renderer;
+    G.tNoise.value ||= makeNoiseTexture();
     const dt = new THREE.DepthTexture(4, 4);
     dt.type = THREE.UnsignedIntType;
     this.rt = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: this.Q.msaa, depthTexture: dt });
     this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.35, 0.65, 1.05);
     this.postMat = new THREE.ShaderMaterial({
       uniforms: {
-        tScene: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture }, tPaper: { value: null },
+        tScene: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture }, tPaper: { value: null }, tNoise: G.tNoise,
         uRes: { value: new THREE.Vector2(1, 1) }, uTime: G.uTime, uSketch: { value: 1 }, uPaperMode: { value: 0 },
         uNear: { value: this.camera.near }, uFar: { value: this.camera.far }, uVignette: { value: 0.55 }, uGrain: { value: 0.035 },
         uFade: { value: 0 }, uFadeColor: { value: new THREE.Color(0x0b0f0c) }, uCA: { value: 1 }, uPx: { value: 1 }, uGrade: { value: 1 },
@@ -413,9 +451,11 @@ export class World {
     this.texLoader?.load?.('img/paper/paper.jpg', (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; this.postMat.uniforms.tPaper.value = t; });
   }
 
-  resize() {
-    const w = window.innerWidth, h = window.innerHeight;
+  resize(force = false) {
+    const w = Math.max(1, this.canvas.clientWidth || window.innerWidth), h = Math.max(1, this.canvas.clientHeight || window.innerHeight);
     const dpr = Math.min(window.devicePixelRatio || 1, this.Q.dpr);
+    if (!force && w === this._w && h === this._h && dpr === this.dpr) return false;
+    this._w = w; this._h = h;
     this.dpr = dpr;
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(w, h, false);
@@ -426,6 +466,7 @@ export class World {
     this.postMat.uniforms.uPx.value = dpr;
     this.camera.aspect = w / h;
     this._applyFov();
+    return true;
   }
 
   _applyFov() {
@@ -610,8 +651,14 @@ export class World {
         const x = all[i * 11], y = all[i * 11 + 1], z = all[i * 11 + 2];
         ((x * x + z * z < 0.95 * 0.95 && y > 1.95) ? onStatue : world).push(i);
       }
-      // keep the shuffled order inside each part so a prefix stays a uniform sample
-      for (const [ids, parent] of [[world, this.foliage], [onStatue, this.statue]]) {
+      // the ring is cut into eight wedges so the ones behind the camera are culled (one mesh for the whole ring was
+      // always "in view"); the shuffled order is kept inside each part, so a prefix stays a uniform sample
+      const SECT = 8, wedges = Array.from({ length: SECT }, () => []);
+      for (const i of world) {
+        const a = Math.atan2(all[i * 11 + 2], all[i * 11]) + Math.PI;
+        wedges[Math.min(SECT - 1, Math.floor(a / (2 * Math.PI) * SECT))].push(i);
+      }
+      for (const [ids, parent] of [...wedges.map((w) => [w, this.foliage]), [onStatue, this.statue]]) {
         if (!ids.length) continue;
         const im = new THREE.InstancedMesh(src.geometry, matFor(mesh), ids.length);
         ids.forEach((i, k) => {
@@ -638,7 +685,7 @@ export class World {
   _applyInstanceFraction() {
     if (!this.instanced) return;
     for (const im of this.instanced) im.count = Math.max(1, Math.floor(im.userData.total * this.Q.frac));
-    this.renderer.shadowMap.needsUpdate = true;
+    if (this.shadowMaps) this._bakeShadows();
   }
 
   // ---------------------------------------------------------------- water
@@ -873,7 +920,7 @@ if (vWPos.y > uClipY) discard;`);
   // ---------------------------------------------------------------- warm-up: compile, bake env + shadows once
   async _warmup() {
     const r = this.renderer;
-    r.clippingPlanes = [];
+    this.clipPlane.constant = 1000;
     // environment from the room itself (one bounce of "GI"), sky bright through the sixteen eyes
     const cubeRT = new THREE.WebGLCubeRenderTarget(this.q === 'low' ? 64 : 128, { type: THREE.HalfFloatType });
     const cubeCam = new THREE.CubeCamera(0.1, 300, cubeRT);
@@ -891,8 +938,28 @@ if (vWPos.y > uClipY) discard;`);
     pmrem.dispose(); cubeRT.dispose();
     this.foliage.visible = true; this.shafts.visible = true; this.dust.visible = true; this.ground.visible = true;
     this.scene.fog = fogWas;
-    this.renderer.shadowMap.needsUpdate = true;
+    this._bakeShadows();
     if (r.compileAsync) { try { await r.compileAsync(this.scene, this.camera); } catch (e) { /* not fatal */ } }
+  }
+
+  // Two static shadow maps, rendered once: with the dome casting (the room as it is) and without (the roof lifted).
+  // Switching between them is a pointer swap, so no frame ever pays for a shadow pass after loading.
+  _bakeShadows() {
+    const r = this.renderer, sun = this.sun;
+    const pass = () => { r.shadowMap.needsUpdate = true; r.setRenderTarget(this.rt); r.render(this.scene, this._nullCam); r.shadowMap.needsUpdate = false; };
+    const old = new Set([sun.shadow.map, this.shadowMaps?.dome, this.shadowMaps?.open].filter(Boolean));
+    sun.shadow.map = null;
+    (this.domeMeshes || []).forEach((m) => { m.castShadow = true; });
+    pass();
+    const dome = sun.shadow.map;
+    sun.shadow.map = null;
+    (this.domeMeshes || []).forEach((m) => { m.castShadow = false; });
+    pass();
+    const open = sun.shadow.map;
+    (this.domeMeshes || []).forEach((m) => { m.castShadow = true; });
+    old.forEach((m) => { m.depthTexture?.dispose(); m.dispose(); });
+    this.shadowMaps = { dome, open };
+    sun.shadow.map = this.params.dome > 0.5 ? dome : open;
   }
 
   // ---------------------------------------------------------------- per-frame
@@ -925,12 +992,7 @@ if (vWPos.y > uClipY) discard;`);
       this.statueYaw += step;
     }
     this.statue.rotation.y = this.statueYaw;
-    // her shadow follows, but the full shadow pass is only re-run now and then
-    const now = performance.now();
-    if (this.ready.world && this.statueMode !== 'spin' && Math.abs(this.statueYaw - this._lastShadowYaw) > 0.05 && now - this._lastShadowT > 450) {
-      this._lastShadowYaw = this.statueYaw; this._lastShadowT = now;
-      this.renderer.shadowMap.needsUpdate = true;
-    }
+    // (her shadow stays as baked: re-rendering every caster while she turns caused periodic hitches)
   }
 
   render(t, dt) {
@@ -943,13 +1005,11 @@ if (vWPos.y > uClipY) discard;`);
     G.uDomeCut.value = THREE.MathUtils.clamp(1 - P.dome, 0, 1);
     G.uPocheK.value = THREE.MathUtils.clamp(P.poche, 0, 1);
     // when the lid is lifted the light floods in: the dome stops casting its shadow
-    const domeShadow = P.dome > 0.5;
-    if (this.domeMeshes && domeShadow !== this._domeShadow) {
-      this._domeShadow = domeShadow;
-      this.domeMeshes.forEach((m) => { m.castShadow = domeShadow; });
-      r.shadowMap.needsUpdate = true;
+    if (this.shadowMaps) {
+      const want = P.dome > 0.5 ? this.shadowMaps.dome : this.shadowMaps.open;
+      if (this.sun.shadow.map !== want) this.sun.shadow.map = want;
     }
-    this.clipPlane.constant = P.clip;
+    this.clipPlane.constant = Math.min(P.clip, 1000);
     G.uMode.value = Math.round(P.mode);
     G.uWaterY.value = P.water;
     if (this.water) this.water.position.y = P.water;
@@ -959,32 +1019,21 @@ if (vWPos.y > uClipY) discard;`);
     if (this.sky) { this.sky.material.uniforms.uI.value = P.sky; this.sky.visible = P.sky > 0.01; }
     this.key.intensity = 2.6 * P.loaderLight; this.rim.intensity = 3.4 * P.loaderLight;
     this.fill.intensity = this.ready.world ? P.fill : 0;
-    this.fill.visible = this.fill.intensity > 0.01;
-    if (this.fill.visible) {
+    if (this.fill.intensity > 0.001) {
       const c = this.camera.position;
       this.fill.position.set(c.x, c.y + 2.5, c.z);
       this.fill.target.position.copy(this.target);
       this.fill.target.updateMatrixWorld();
     }
-    this.key.visible = P.loaderLight > 0.01; this.rim.visible = P.loaderLight > 0.01;
-    this.sun.intensity = 5.2 * (this.ready.world ? 1 : 0.0);
+    this.sun.intensity = 5.2 * (this.ready.world ? 1 : 0.0) * (P.sun ?? 1);
     this.hemi.intensity = this.ready.world ? 0.38 : 0.15;
     const u = this.postMat.uniforms;
     u.uSketch.value = P.sketch; u.uPaperMode.value = P.paper; u.uVignette.value = P.vignette; u.uFade.value = P.fade;
     if (this.paused) return;
 
-    // shadows are baked with the clip plane off so the cut model keeps the lighting of the closed building
-    if (r.shadowMap.needsUpdate && P.clip < 200) {
-      // bake through a camera that sees nothing: only the shadow pass does work
-      r.clippingPlanes = [];
-      r.setRenderTarget(this.rt);
-      r.render(this.scene, this._nullCam);
-      r.shadowMap.needsUpdate = false;
-    }
-    r.clippingPlanes = P.clip < 200 ? [this.clipPlane] : [];
+    // (three.js never clips the shadow pass, so the cut model keeps the lighting of the closed building)
     r.setRenderTarget(this.rt);
     r.render(this.scene, this.camera);
-    r.clippingPlanes = [];
     if (this.Q.bloom && P.bloom > 0.01) {
       this.bloom.strength = P.bloom;
       this.bloom.render(r, null, this.rt, dt, false);

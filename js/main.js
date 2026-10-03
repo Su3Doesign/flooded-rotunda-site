@@ -2,17 +2,20 @@
 import * as THREE from 'three';
 import { World } from './world.js';
 import { Tour, STATIONS } from './tour.js';
-import { drawPlan, drawSection } from './drawings.js';
 import { buildMark, rebuildDrawn } from './marks.js';
 import { Sound } from './sound.js';
 
 const gsap = window.gsap, ScrollTrigger = window.ScrollTrigger;
 gsap.registerPlugin(ScrollTrigger);
+ScrollTrigger.config({ ignoreMobileResize: true });
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const QS = new URLSearchParams(location.search);
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || Math.min(screen.width, screen.height) < 600;
+const UA = navigator.userAgent;
+const isIPad = /iPad/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);   // iPadOS reports a Mac
+const isPhone = /iPhone|iPod|Android.*Mobile|Mobile.*Firefox/i.test(UA) || Math.min(screen.width, screen.height) < 600;
+const isMobile = isPhone || isIPad || /Android/i.test(UA);
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.scrollTo(0, 0);
 
@@ -51,7 +54,9 @@ function pickQuality() {
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
     const gpu = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : '';
     if (/SwiftShader|llvmpipe|Software|Basic Render/i.test(gpu)) return 'low';
+    if (isIPad) return 'medium';                                 // Apple tablets: medium, and it steps down by itself if needed
     if (isMobile) return 'low';
+    if (/Intel.*(UHD|HD Graphics)|Mali|Adreno|PowerVR/i.test(gpu)) return 'low';
     if (/NVIDIA|GeForce|RTX|Radeon RX|Radeon Pro|Apple M\d/i.test(gpu)) return 'high';
     return 'medium';
   } catch (e) { return 'medium'; }
@@ -61,10 +66,30 @@ if (world) world.setQuality(pickQuality());
 // ------------------------------------------------------------------ tour sections
 const worldSections = $$('section.ch[data-station]').map((el) => ({ el, station: el.dataset.station }));
 const tour = new Tour(worldSections);
+// Layout is measured here, once per real layout change, never inside the frame loop (reading offsets every frame
+// forced a synchronous layout per frame and was the main source of stutter on tablets).
 let docH = 0;
-const rebuild = () => { tour.build(); ScrollTrigger.refresh(); placeGauge(); docH = document.documentElement.scrollHeight; };
-new ResizeObserver(() => { if (Math.abs(document.documentElement.scrollHeight - docH) > 2) rebuild(); }).observe($('main'));
-window.addEventListener('resize', () => { world?.resize(); rebuild(); });
+const LAY = { maxY: 1, vh: innerHeight, vw: innerWidth, pages: [], chapters: [], secs: new Map() };
+const absTop = (el) => el.getBoundingClientRect().top + window.scrollY;
+function measure() {
+  LAY.vh = innerHeight; LAY.vw = innerWidth;
+  LAY.maxY = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+  LAY.pages = $$('.page').map((p) => { const t = absTop(p); return { t, b: t + p.offsetHeight, dark: p.classList.contains('page--dark') }; });
+  LAY.chapters = $$('[data-chapter]').map((el) => ({ el, t: absTop(el), c: el.dataset.chapter }));
+  $$('main > section').forEach((el) => LAY.secs.set(el, { t: absTop(el), h: el.offsetHeight }));
+  if (typeof measureAnnos === 'function') measureAnnos();
+}
+let rebuildT = 0;
+const rebuild = () => { measure(); tour.build(); ScrollTrigger.refresh(); placeGauge(); measure(); docH = document.documentElement.scrollHeight; };
+const rebuildSoon = () => { clearTimeout(rebuildT); rebuildT = setTimeout(rebuild, 180); };
+new ResizeObserver(() => { if (Math.abs(document.documentElement.scrollHeight - docH) > 2) rebuildSoon(); }).observe($('main'));
+// a phone or tablet toolbar sliding in or out is also a 'resize': the canvas (100lvh) does not change, and the
+// layout only needs measuring again when the width changes or the height changes a lot (rotation, split view)
+let lastW = innerWidth, lastH = innerHeight;
+window.addEventListener('resize', () => {
+  world?.resize();
+  if (innerWidth !== lastW || Math.abs(innerHeight - lastH) > 160) { lastW = innerWidth; lastH = innerHeight; rebuildSoon(); }
+});
 window.addEventListener('pointermove', (e) => {
   tour.mouse.set((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1);
 }, { passive: true });
@@ -173,10 +198,12 @@ function initPages() {
       { opacity: 1, y: 0, rotate: parseFloat(getComputedStyle(el).getPropertyValue('--r')) || 0, duration: 1.1, ease: 'power3.out',
         scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
   });
-  // the plan + section sheets wipe in like a pen crossing the paper
-  const plan = $('.plan-drawing'), elev = $('.elev-drawing');
-  if (plan) drawPlan(plan, world?.meta?.holes || []);
-  if (elev) drawSection(elev);
+  // the plan + elevation sheets (traced from the model) wipe in like a pen crossing the paper; on phones they drop their
+  // side labels and crop to the drawing, and a caption under each says the rest
+  const phone = window.matchMedia('(max-width: 640px)');
+  const fitSheets = () => $$('svg[data-vb-tight]').forEach((s) => s.setAttribute('viewBox', phone.matches ? s.dataset.vbTight : s.dataset.vbWide));
+  fitSheets();
+  phone.addEventListener?.('change', fitSheets);
   $$('.drawing').forEach((svg) => gsap.fromTo(svg, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 2.4, ease: 'power1.inOut',
     scrollTrigger: { trigger: svg, start: 'top 88%', once: true } }));
   // red-pencil marks: built once the element (and its picture) is in view, then drawn in
@@ -271,12 +298,13 @@ function placeGauge() {
 const chapN = $('.chapter-n'), chapT = $('.chapter-t');
 const labelled = $$('[data-chapter]');
 let lastChapter = '';
+let lastFill = -1;
 function updateHud(y) {
-  const H = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-  gaugeFill.style.height = `${Math.min(100, (y / H) * 100)}%`;
-  const mid = y + innerHeight * 0.5;
-  let cur = labelled[0];
-  for (const el of labelled) if (el.offsetTop <= mid) cur = el;
+  const f = Math.min(100, (y / LAY.maxY) * 100);
+  if (Math.abs(f - lastFill) > 0.05) { lastFill = f; gaugeFill.style.transform = `scaleY(${(f / 100).toFixed(4)})`; }
+  const mid = y + LAY.vh * 0.5;
+  let cur = LAY.chapters[0]?.el;
+  for (const ch of LAY.chapters) if (ch.t <= mid) cur = ch.el;
   const c = cur?.dataset.chapter || '';
   if (c !== lastChapter) {
     lastChapter = c;
@@ -290,33 +318,79 @@ function updateHud(y) {
 }
 
 // ------------------------------------------------------------------ 3D-anchored annotations
+// Each label hangs off its 3D point on a leader. Which way the leader goes is decided per frame from four mirrored
+// options, so on any screen shape the label stays on screen and off the chapter text, the notes, the HUD and the gauge.
 const annos = $$('.anno').map((el) => ({ el, sec: el.closest('section'), dot: $('.dot', el), lead: $('.lead', el), lbl: $('.lbl', el),
   at: el.dataset.at ? new THREE.Vector3(...el.dataset.at.split(',').map(Number)) : null,
-  dx: parseFloat(el.dataset.dx || '80'), dy: parseFloat(el.dataset.dy || '-80'), hole: el.dataset.hole, sign: el.hasAttribute('data-sign'), statue: el.hasAttribute('data-statue') }));
-annos.forEach((a) => {
-  const len = Math.hypot(a.dx, a.dy), ang = Math.atan2(a.dy, a.dx);
+  dx: parseFloat(el.dataset.dx || '80'), dy: parseFloat(el.dataset.dy || '-80'), hole: el.dataset.hole, sign: el.hasAttribute('data-sign'),
+  statue: el.hasAttribute('data-statue'), dir: -1, w: 0, h: 0 }));
+const DIRS = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+function setDir(a, k) {
+  a.dir = k;
+  const dx = a.dx * DIRS[k][0], dy = a.dy * DIRS[k][1];
+  const len = Math.hypot(dx, dy), ang = Math.atan2(dy, dx);
   a.lead.style.width = `${len}px`;
   a.lead.style.transform = `rotate(${ang}rad)`;
-  a.lbl.style.left = `${a.dx}px`;
-  a.lbl.style.top = `${a.dy}px`;
-  a.lbl.style.transform = `translate(${a.dx < 0 ? '-100%' : '0'}, ${a.dy < 0 ? '-100%' : '0'}) translate(${a.dx < 0 ? -8 : 8}px, 0)`;
-});
-const _v = new THREE.Vector3();
+  a.lbl.style.left = `${dx}px`;
+  a.lbl.style.top = `${dy}px`;
+  a.lbl.style.transform = `translate(${dx < 0 ? '-100%' : '0'}, ${dy < 0 ? '-100%' : '0'}) translate(${dx < 0 ? -8 : 8}px, 0)`;
+}
+annos.forEach((a) => setDir(a, 0));
+// keep-out boxes per chapter, in stage (= screen) coordinates; measured with the layout, never per frame
+function measureAnnos() {
+  LAY.keep = new Map();
+  for (const { el } of worldSections) {
+    const boxes = $$('.ch__text, .note, .ch__num', el).filter((e) => e.offsetParent).map((e) => ({ x: e.offsetLeft - 14, y: e.offsetTop - 14, w: e.offsetWidth + 28, h: e.offsetHeight + 28 }));
+    LAY.keep.set(el, boxes);
+  }
+  for (const a of annos) { a.w = a.lbl.offsetWidth; a.h = a.lbl.offsetHeight; }
+}
+const overlap = (x, y, w, h, b) => Math.max(0, Math.min(x + w, b.x + b.w) - Math.max(x, b.x)) * Math.max(0, Math.min(y + h, b.y + b.h) - Math.max(y, b.y));
+function labelBox(a, k, sx, sy) {
+  const dx = a.dx * DIRS[k][0], dy = a.dy * DIRS[k][1];
+  return { x: sx + dx + (dx < 0 ? -8 - a.w : 8), y: sy + dy + (dy < 0 ? -a.h : 0), w: a.w, h: a.h };
+}
+function badness(a, k, sx, sy, keep, placed) {
+  const b = labelBox(a, k, sx, sy), vw = LAY.vw, vh = LAY.vh;
+  const m = 10, top = 66, right = vw > 640 ? 70 : 10;          // HUD band and the gauge
+  const inside = Math.max(0, Math.min(b.x + b.w, vw - right) - Math.max(b.x, m)) * Math.max(0, Math.min(b.y + b.h, vh - m) - Math.max(b.y, top));
+  let bad = (b.w * b.h - inside) * 2;
+  for (const r of keep) bad += overlap(b.x, b.y, b.w, b.h, r);
+  for (const r of placed) bad += overlap(b.x, b.y, b.w, b.h, r) * 1.5;
+  return { bad, b };
+}
+const _v = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 function updateAnnos(y) {
   if (!world?.ready.world) return;
+  let placedSec = null, placed = [];
   for (const a of annos) {
-    const top = a.sec.offsetTop, h = a.sec.offsetHeight;
-    const inHold = y > top - innerHeight * 0.05 && y < top + h - innerHeight * 0.95;
-    if (!inHold) { a.el.classList.remove('on'); continue; }
+    const S = LAY.secs.get(a.sec);
+    if (!S) continue;
+    const inHold = y > S.t + (S.h - LAY.vh) * 0.2 && y < S.t + (S.h - LAY.vh) * 0.8;
+    if (!inHold) { if (a.on) { a.on = false; a.el.classList.remove('on'); } continue; }
     if (a.hole != null) _v.set(...world.meta.holes[+a.hole].slice(0, 3));
     else if (a.sign) _v.copy(world.signAnchor).add(new THREE.Vector3(0, 0.35, 0));
     else _v.copy(a.at);
-    if (a.statue) _v.applyAxisAngle(new THREE.Vector3(0, 1, 0), world.statueYaw);
+    if (a.statue) _v.applyAxisAngle(_up, world.statueYaw);
     world.project(_v, _v);
-    const vis = _v.z < 1 && Math.abs(_v.x) < 1.05 && Math.abs(_v.y) < 1.05;
-    a.el.classList.toggle('on', vis);
+    let vis = _v.z < 1 && Math.abs(_v.x) < 0.92 && Math.abs(_v.y) < 0.92;
+    const sx = (_v.x * 0.5 + 0.5) * LAY.vw, sy = (-_v.y * 0.5 + 0.5) * LAY.vh;
+    if (vis) {
+      if (placedSec !== a.sec) { placedSec = a.sec; placed = []; }
+      const keep = LAY.keep?.get(a.sec) || [];
+      // the anchor itself must not sit under the text
+      if (keep.some((r) => sx > r.x && sx < r.x + r.w && sy > r.y && sy < r.y + r.h)) vis = false;
+      else {
+        const cur = a.dir >= 0 ? badness(a, a.dir, sx, sy, keep, placed) : { bad: Infinity };
+        let best = a.dir, bestS = cur;
+        if (cur.bad > 0) for (let k = 0; k < 4; k++) { if (k === a.dir) continue; const sc = badness(a, k, sx, sy, keep, placed); if (sc.bad < bestS.bad * 0.6) { best = k; bestS = sc; } }
+        if (best !== a.dir) setDir(a, best);
+        if (bestS.bad > a.w * a.h * 0.2) vis = false;               // nowhere clean to put it: leave it out
+        else placed.push(bestS.b);
+      }
+    }
+    if (vis !== a.on) { a.on = vis; a.el.classList.toggle('on', vis); }
     if (!vis) continue;
-    const sx = (_v.x * 0.5 + 0.5) * innerWidth, sy = (-_v.y * 0.5 + 0.5) * innerHeight;
     a.el.style.transform = `translate3d(${sx.toFixed(1)}px, ${sy.toFixed(1)}px, 0)`;
   }
 }
@@ -372,28 +446,36 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches && !reduced)
 // ------------------------------------------------------------------ frame loop
 const pages = $$('.page');
 let onPaper = false;
-function pageCovers() {
+let worldPaper = false;                                          // the world itself is drawn on cream paper (the plan)
+function pageCovers(y = window.scrollY) {
   // also: is light paper under the HUD (top of the screen)? then the HUD switches to ink
-  let covers = false, paper = false;
-  for (const p of pages) {
-    const r = p.getBoundingClientRect();
-    if (r.top <= -44 && r.bottom >= innerHeight + 44) covers = true;
-    if (r.top <= 60 && r.bottom >= 80 && !p.classList.contains('page--dark')) paper = true;
+  let covers = false, paper = worldPaper;
+  for (const p of LAY.pages) {
+    if (p.t - y <= -44 && p.b - y >= LAY.vh + 44) covers = true;
+    if (p.t - y <= 60 && p.b - y >= 80 && !p.dark) paper = true;
   }
   if (paper !== onPaper) { onPaper = paper; document.body.classList.toggle('on-paper', paper); }
   return covers;
 }
 const lerp = (a, b, t) => a + (b - a) * t;
-const PARAM_KEYS = ['clip', 'sketch', 'paper', 'shafts', 'dust', 'fog', 'exposure', 'ground', 'sky', 'mode', 'water', 'track', 'loaderLight', 'bloom', 'vignette', 'dome', 'poche', 'fill'];
+const PARAM_KEYS = ['clip', 'sketch', 'paper', 'shafts', 'dust', 'fog', 'exposure', 'ground', 'sky', 'mode', 'water', 'track', 'loaderLight', 'bloom', 'vignette', 'dome', 'poche', 'fill', 'sun'];
 let ema = 16, slowFor = 0, lastT = 0;
 const fpsEl = QS.has('debug') ? Object.assign(document.body.appendChild(document.createElement('div')), { style: 'position:fixed;left:8px;bottom:8px;z-index:99;font:12px monospace;color:#9f9;background:#000a;padding:4px 6px' }) : null;
 
+let ySm = 0, yPrev = 0;
+const NORENDER = QS.has('norender');                          // layout tests: run the tour without drawing
 gsap.ticker.add((time, deltaMs) => {
   lenis.raf(time * 1000);
-  if (!world) { pageCovers(); if (intro.done) updateHud(window.scrollY); return; }
-  const dt = Math.min(deltaMs / 1000, 0.1);
   const y = window.scrollY;
-  const s = tour.sample(y, time);
+  if (!world) { pageCovers(y); if (intro.done) updateHud(y); return; }
+  const dt = Math.min(deltaMs / 1000, 0.1);
+  // the camera follows a softened scroll: frame-rate independent, so a flick on a touch screen becomes a glide
+  // (a jump of several screens in one frame — Home/End, a deep link — cuts straight there instead of flying the whole tour)
+  if (Math.abs(y - yPrev) > LAY.vh * 3) ySm = y;
+  yPrev = y;
+  ySm += (y - ySm) * (1 - Math.exp(-dt * 5.5));
+  if (Math.abs(y - ySm) < 0.05) ySm = y;
+  const s = tour.sample(ySm, time);
   let pos = s.pos, target = s.target, fov = s.fov, params = {};
   for (const k of PARAM_KEYS) params[k] = s[k];
   if (!intro.done || intro.p < 1) {
@@ -409,15 +491,16 @@ gsap.ticker.add((time, deltaMs) => {
   if (userSketch.v > 0) { params.sketch = Math.max(params.sketch, userSketch.v); params.paper = lerp(params.paper, 1, userSketch.v); }
   world.setView(pos, target, fov);
   world.setParams(params);
-  world.paused = pageCovers();
+  worldPaper = params.paper * Math.max(params.sketch, 0) > 0.5;
+  world.paused = pageCovers(y) || NORENDER;
   world.render(time, dt);
-  if (intro.done) { updateHud(y); updateAnnos(y); updateModes(Math.round(params.mode), s.station); }
+  if (intro.done) { updateHud(y); updateAnnos(ySm); updateModes(Math.round(params.mode), s.station); }
 
   // keep it smooth: step quality down if frames stay slow
   if (!world.paused && intro.done) {
     ema = ema * 0.94 + deltaMs * 0.06;
-    slowFor = ema > 30 ? slowFor + deltaMs : 0;
-    if (slowFor > 2500 && !QS.get('q')) {
+    slowFor = ema > 21 ? slowFor + deltaMs : 0;
+    if (slowFor > 2000 && !QS.get('q') && world.q !== 'low') {
       slowFor = 0;
       world.setQuality(world.q === 'high' ? 'medium' : 'low');
     }
@@ -444,4 +527,4 @@ async function boot() {
   }
 }
 boot();
-window.__rotunda = { get world() { return world; }, tour, lenis };
+window.__rotunda = { get world() { return world; }, tour, lenis, snap: () => { ySm = yPrev = window.scrollY; } };

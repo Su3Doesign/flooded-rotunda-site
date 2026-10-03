@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 
 const D = { clip: 1000, sketch: 0, paper: 0, shafts: 1, dust: 1, fog: 0.008, exposure: 1.08, ground: 0, sky: 1, mode: 0, water: 0,
-  track: 1, loaderLight: 0, bloom: 0.38, vignette: 0.55, sway: 0, dome: 1, poche: 0, fill: 0.35 };
+  track: 1, loaderLight: 0, bloom: 0.38, vignette: 0.55, sway: 0, dome: 1, poche: 0, fill: 0.35, sun: 1 };
 
 const door = (r, y) => { const a = THREE.MathUtils.degToRad(257); return [r * Math.cos(a), y, -r * Math.sin(a)]; };
 
@@ -13,14 +13,17 @@ export const STATIONS = {
   reveal: { pos: [0.35, 3.75, 4.6], target: [0, 3.55, 0], fov: 35, loaderLight: 0.3, fill: 0.12, shafts: 1.3, fog: 0.006, exposure: 1.0, vignette: 0.7, drift: [[-0.25, -0.05, 0.25], [0, 0, 0]] },
   rise: { pos: [1.4, 12.5, 3.0], target: [0, 3.0, 0], fov: 46, loaderLight: 0.1 },
   oculus: { pos: [0.7, 27, 1.1], target: [0, 2.0, 0], fov: 44, sky: 0.4 },
-  hero: { pos: [17.5, 43, 22.5], target: [-6.4, 1.0, 2.6], fov: 34, dome: 0, sky: 0, ground: 0.9, fog: 0.002, shafts: 0, dust: 0, exposure: 1.02, bloom: 0.22, sway: 10, drift: [[0, 0, 0], [-2, -3, -2.5]] },
-  plan: { pos: [-12.99, 66, 1.0], target: [-13.0, 0, 0], fov: 30, clip: 2.6, poche: 1, dome: 0, sky: 0, ground: 0.8, fog: 0.0, shafts: 0, dust: 0, sketch: 1, paper: 1, exposure: 1.9, bloom: 0.0, vignette: 0.2, drift: [[0, 0, 0], [0, -6, 0]] },
+  hero: { pos: [17.5, 43, 22.5], target: [-6.4, 1.0, 2.6], fov: 34, dome: 0, sky: 0, ground: 0.9, fog: 0.002, shafts: 0, dust: 0, exposure: 1.02, bloom: 0.22, sway: 10, drift: [[0, 0, 0], [-2, -3, -2.5]],
+    portrait: { target: [-3.9, 1.0, -5.0] } },
+  plan: { pos: [-12.99, 66, 1.0], target: [-13.0, 0, 0], fov: 30, clip: 2.6, poche: 1, dome: 0, sky: 0, ground: 0.8, fog: 0.0, shafts: 0, dust: 0, sketch: 1, paper: 1, exposure: 1.9, bloom: 0.0, vignette: 0.2, drift: [[0, 0, 0], [0, -6, 0]],
+    portrait: { pos: [0.01, 72, 12.6], target: [0, 0, 11.6] } },
   descend: { pos: [4.2, 13.0, 5.0], target: [-1.5, 4.0, -2.0], fov: 46, dome: 0, sky: 1, shafts: 0.2 },
   bays: { pos: [-2.2, 1.9, 4.6], target: [8.2, 5.2, 1.4], fov: 52, fill: 0.6, exposure: 1.2, drift: [[0, 0, 0], [0.5, 0.2, -0.6]] },
   dome: { pos: [3.83, 0.9, 3.21], target: [-1.73, 17.0, -1.0], fov: 62, shafts: 0.95, dust: 1.4, bloom: 0.32, exposure: 1.0, drift: [[0, 0, 0], [-0.5, 0.2, 0.6]] },
   statue: { pos: [-0.76, 4.4, 4.33], target: [0.75, 3.7, 0.15], fov: 31, shafts: 1.0, fill: 0.7, drift: [[0, 0, 0], [0.45, -0.12, 0.2]] },
   water: { pos: [5.4, 1.5, 5.9], target: [0.2, 1.9, 0.1], fov: 46, fill: 0.5, drift: [[0, 0, 0], [-0.7, 0.05, -0.6]] },
-  ivy: { pos: [2.6, 4.7, 5.0], target: [4.6, 5.0, 7.97], fov: 40, fill: 1.5, exposure: 1.2, drift: [[0, 0, 0], [0.5, 0.3, 0.2]] },
+  // the oculus throws its six-metre pool of sun onto bay XII at the waterline: ivy, moss and ferns, lit (scene.json holes)
+  ivy: { pos: [1.9, 3.1, -0.3], target: [9.4, 4.1, 1.3], fov: 50, sun: 2.6, fill: 0.12, fog: 0.003, shafts: 0.45, dust: 1.8, exposure: 1.05, bloom: 0.45, drift: [[0, 0, 0], [0.4, 0.2, 0.3]] },
   door: { pos: door(12.05, 2.9), target: [0, 2.85, 0], fov: 40, fill: 0.55, drift: [[0, 0, 0], [0.15, 0.05, -0.45]] },
   breakdown: { pos: [5.5, 7.4, 5.3], target: [0, 3.0, 0], fov: 50, sway: 14, fill: 0.45, modeScrub: [1, 2, 3, 0] },
   oculusIn: { pos: [0.8, 13.0, 0.9], target: [0.4, 30, 0.3], fov: 62 },
@@ -32,7 +35,9 @@ const VIA = { hero: ['rise', 'oculus'], bays: ['descend'], finale: ['oculusIn', 
 const PARAMS = Object.keys(D);
 
 function full(name) {
-  const s = STATIONS[name];
+  // tall screens can carry their own framing for a station (the plan sits high, above the text card)
+  const base = STATIONS[name];
+  const s = base.portrait && window.innerWidth / window.innerHeight < 0.9 ? { ...base, ...base.portrait } : base;
   const o = { name, ...D, ...s };
   o.pos = new THREE.Vector3(...s.pos);
   o.target = new THREE.Vector3(...s.target);
@@ -58,8 +63,9 @@ export class Tour {
     const vh = window.innerHeight;
     const keys = [];
     for (const { el, station } of this.sections) {
-      const top = el.offsetTop, h = el.offsetHeight;
-      const arrive = top, leave = Math.max(top, top + h - vh);
+      const top = el.getBoundingClientRect().top + window.scrollY, h = el.offsetHeight, span = Math.max(0, h - vh);
+      // hold in the middle of the chapter; the journey uses the chapter's ends as well, so moves are long and gentle
+      const arrive = top + span * (keys.length ? 0.2 : 0), leave = Math.max(arrive, top + span * 0.8);
       const via = VIA[station] || [];
       if (keys.length && via.length) {
         const prev = keys[keys.length - 1].y;

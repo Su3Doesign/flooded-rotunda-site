@@ -2,8 +2,11 @@
 // Authored in the HTML as data attributes and generated from each element's box, so they fit at any width:
 //   data-mk="circle"                         loose double loop around the element
 //   data-mk="underline"                      wavy stroke under it
-//   data-mk="arrow" data-mk-pts="x0,y0,x1,y1" curved arrow, points as fractions of the element box (may lie outside it)
+//   data-mk="arrow" data-mk-from="sel" data-mk-fp="fx,fy" data-mk-to="sel" data-mk-tp="tx,ty"
+//                                            curved arrow from a point of one child (the note) to a point of another
+//                                            (the thing it is about): fractions of each child's box, so it always connects
 //   data-mk-ink="graphite"                   pencil instead of red
+// Nothing is allowed to reach past the edge of the screen (that made the page scroll sideways on phones).
 const NS = 'http://www.w3.org/2000/svg';
 
 function rng(seed) {
@@ -11,8 +14,8 @@ function rng(seed) {
   return () => (s = (s * 16807) % 2147483647) / 2147483647;
 }
 
-function circle(w, h, r) {
-  const cx = w / 2, cy = h / 2, rx = w / 2 + 10 + r() * 6, ry = h / 2 + 10 + r() * 8;
+function circle(w, h, r, room) {
+  const cx = w / 2, cy = h / 2, rx = Math.min(w / 2 + 10 + r() * 6, w / 2 + room - 5), ry = h / 2 + 10 + r() * 8;
   const a0 = -2.2 + r() * 0.8, turns = 1.1 + r() * 0.14, ph = r() * 6.28, n = 72;
   let d = '';
   for (let i = 0; i <= n; i++) {
@@ -34,9 +37,7 @@ function underline(w, h, r) {
   return { d: d + back, pad: 16 };
 }
 
-function arrow(w, h, r, pts) {
-  const [fx, fy, tx, ty] = pts;
-  const x0 = fx * w, y0 = fy * h, x1 = tx * w, y1 = ty * h;
+function arrow(w, h, r, [x0, y0, x1, y1]) {
   const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1;
   const bend = (0.18 + r() * 0.12) * (r() > 0.5 ? 1 : -1);
   const cx = (x0 + x1) / 2 - dy * bend, cy = (y0 + y1) / 2 + dx * bend;
@@ -60,10 +61,29 @@ export function buildMark(el) {
   const r = rng(all.indexOf(el) + 7);
   const kind = el.dataset.mk;
   let res;
-  if (kind === 'circle') res = circle(w, h, r);
-  else if (kind === 'underline') res = underline(w, h, r);
-  else res = arrow(w, h, r, (el.dataset.mkPts || '-0.3,-0.2,0,0.2').split(',').map(Number));
-  const [bx0, by0, bx1, by1] = res.box || [-res.pad, -res.pad, w + res.pad, h + res.pad];
+  const box = el.getBoundingClientRect(), vw = document.documentElement.clientWidth;
+  const room = Math.max(0, Math.min(box.left, vw - box.right));          // free space to the nearer screen edge
+  if (kind === 'circle') res = circle(w, h, r, room);
+  else if (kind === 'underline') res = underline(Math.min(w, vw - box.left - 14), h, r);
+  else {
+    // a point inside a child, in the element's own (untransformed) layout coordinates
+    const at = (sel, fr) => {
+      const t = (sel && el.querySelector(sel)) || el, [fx, fy] = fr.split(',').map(Number);
+      if (t.offsetParent === undefined) {                                  // svg child: no layout offsets, use its box
+        const b = t.getBoundingClientRect();
+        return [b.left - box.left + fx * b.width, b.top - box.top + fy * b.height];
+      }
+      let x = 0, y = 0;
+      for (let n = t; n && n !== el; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+      return [x + fx * t.offsetWidth, y + fy * t.offsetHeight];
+    };
+    const [x0, y0] = at(el.dataset.mkFrom, el.dataset.mkFp || '0,0.5'), [x1, y1] = at(el.dataset.mkTo, el.dataset.mkTp || '0.5,0.5');
+    const clampX = (x) => Math.max(-box.left + 8, Math.min(vw - box.left - 8, x));
+    res = arrow(w, h, r, [clampX(x0), y0, clampX(x1), y1]);
+  }
+  let [bx0, by0, bx1, by1] = res.box || [-res.pad, -res.pad, w + res.pad, h + res.pad];
+  // the svg box itself must stay on screen (a box past the edge is what scrolls a phone sideways); strokes may overhang it
+  bx0 = Math.max(bx0, -box.left + 1); bx1 = Math.min(bx1, vw - box.left - 1);
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('class', 'mk-auto' + (el.dataset.mkInk === 'graphite' ? ' mk-auto--ink' : ''));
   svg.setAttribute('viewBox', `${bx0} ${by0} ${bx1 - bx0} ${by1 - by0}`);
